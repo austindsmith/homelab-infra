@@ -17,7 +17,7 @@ variable "node_name" {
 
 variable "lxc_template" {
   type    = string
-  default = "ubuntu-25.04-standard_25.04-1.1_amd64.tar.zst"
+  default = "ubuntu-24.04-standard_24.04-2_amd64.tar.zst"
 }
 
 variable "lxc_storage" {
