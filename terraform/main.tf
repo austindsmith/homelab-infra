@@ -1,7 +1,7 @@
 terraform {
   required_providers {
     proxmox = {
-      source = "telmate/proxmox"
+      source  = "telmate/proxmox"
       version = "3.0.2-rc05"
     }
   }
@@ -31,5 +31,17 @@ resource "proxmox_lxc" "test-container" {
     storage = "local-lvm"
     size    = "8G"
   }
+
+  network {
+    name   = "eth0"
+    bridge = "vmbr0"
+    ip     = "192.168.50.${15 + count.index}/24"
+    gw     = "192.168.50.1"
+    tag    = 2
+  }
+
+
+  # writes to /root/.ssh/authorized_keys
+  ssh_public_keys = file(var.ssh_pubkey_path)
 }
 

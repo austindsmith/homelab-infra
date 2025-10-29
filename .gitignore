@@ -1,2 +1,27 @@
+# Terraform
+.terraform/
+*.tfstate
+*.tfstate.*
+crash.log
+crash.*.log
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json
+
+# Secrets & tfvars
 *secrets*
-*code-workspace
+*.tfvars
+!terraform.example.tfvars
+
+# Ansible
+*.retry
+
+# Editor/OS
+.vscode/
+.DS_Store
+
+# Python
+.venv/
+__pycache__/
+galaxy.lock
