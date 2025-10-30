@@ -1,0 +1,10 @@
+- name: Disable firewall on Ubuntu
+  hosts: lxc
+  become: true
+  gather_facts: true
+  vars:
+    ansible_host_key_checking: false
+  tasks:
+    - name: Disable UFW
+      community.general.ufw:
+        state: disabled

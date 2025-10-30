@@ -1,6 +1,6 @@
 variable "ssh_pubkey_path" {
   type    = string
-  default = "~/.ssh/id_ed25519.pub"
+  default = "/home/austin/.ssh/id_ed25519.pub"
 }
 
 variable "pm_api_url" {

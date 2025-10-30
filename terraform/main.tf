@@ -4,6 +4,11 @@ terraform {
       source  = "telmate/proxmox"
       version = "3.0.2-rc05"
     }
+    # Allows for randomization of MAC address for quicker apply/destroy
+    random = {
+      source  = "hashicorp/random"
+      version = "~> 3.6"
+    }
   }
 }
 
@@ -12,6 +17,12 @@ provider "proxmox" {
   pm_api_token_id     = var.pm_api_token_id
   pm_api_token_secret = var.pm_api_token_secret
   pm_tls_insecure     = true
+}
+
+# Aids creating MAC address
+resource "random_id" "mac" {
+  count       = var.lxc_count
+  byte_length = 5
 }
 
 resource "proxmox_lxc" "test-container" {
@@ -38,6 +49,13 @@ resource "proxmox_lxc" "test-container" {
     ip     = "192.168.50.${15 + count.index}/24"
     gw     = "192.168.50.1"
     tag    = 2
+    hwaddr = format("02:%s:%s:%s:%s:%s",
+      substr(random_id.mac[count.index].hex, 0, 2),
+      substr(random_id.mac[count.index].hex, 2, 2),
+      substr(random_id.mac[count.index].hex, 4, 2),
+      substr(random_id.mac[count.index].hex, 6, 2),
+      substr(random_id.mac[count.index].hex, 8, 2)
+    )
   }
 
 
