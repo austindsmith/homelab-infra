@@ -20,32 +20,32 @@ variable "node_name" {
   default = "proxmox"
 }
 
-variable "lxc_template" {
+variable "vm_template" {
   type    = string
   default = "ubuntu-24.04-standard_24.04-2_amd64.tar.zst"
 }
 
-variable "lxc_storage" {
+variable "vm_storage" {
   type    = string
   default = "local-lvm"
 }
 
-variable "lxc_password" {
+variable "vm_password" {
   type      = string
   sensitive = true
 }
 
-variable "lxc_memory" {
+variable "vm_memory" {
   type    = number
   default = 512
 }
 
-variable "lxc_cores" {
+variable "vm_cores" {
   type    = number
   default = 1
 }
 
-variable "lxc_count" {
+variable "vm_count" {
   type    = number
   default = 5
 }

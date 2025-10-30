@@ -1,12 +1,9 @@
-# Hardware requirements for k3s:
-# https://docs.k3s.io/installation/requirements
 terraform {
   required_providers {
     proxmox = {
       source  = "telmate/proxmox"
       version = "3.0.2-rc05"
     }
-    # Allows for randomization of MAC address for quicker apply/destroy
     random = {
       source  = "hashicorp/random"
       version = "~> 3.6"
@@ -21,47 +18,43 @@ provider "proxmox" {
   pm_tls_insecure     = true
 }
 
-# Aids creating MAC address
+# one MAC per VM
 resource "random_id" "mac" {
-  count       = var.lxc_count
+  count       = var.vm_count
   byte_length = 5
 }
 
-resource "proxmox_lxc" "test-container" {
-  count        = var.lxc_count
-  hostname     = "LXC-test-${count.index + 1}"
-  target_node  = var.node_name
-  vmid         = 2000 + count.index
-  ostemplate   = "local:vztmpl/${var.lxc_template}"
-  cores        = var.lxc_cores
-  memory       = var.lxc_memory
-  password     = var.lxc_password
-  unprivileged = true
-  onboot       = true
-  start        = true
+resource "proxmox_vm_qemu" "k3s_vm" {
+  count       = var.vm_count
 
-  # This set is to get rid of the overlayfs error when installing k3s
-  features {
-    # Allows for containers within containers
-    nesting = true
-    # Allows the container to use the Linux keyring
-    #keyctl  = true
-    # Allows the container to use FUSE as a fallback to overlayfs
-    #fuse    = true
+  name        = "lab-k8s-${count.index + 1}"
+  target_node = var.node_name
+  vmid        = 2000 + count.index
+
+  # use the template NAME
+  clone       = "ubuntu-24-04-ci"
+  full_clone  = true
+
+  cpu {
+    cores   = var.vm_cores
+    sockets = 1
+    type    = "x86-64-v3"
   }
 
-  rootfs {
-    storage = "local-lvm"
-    size    = "8G"
-  }
+  memory = var.vm_memory
+  scsihw = "virtio-scsi-pci"
+  agent  = 1
+
+  # keep template disks → no disk{} here
+  # keep template cloud-init drive → no delete of ide2
+  # so: DO NOT set boot=...; let Proxmox inherit from template
 
   network {
-    name   = "eth0"
-    bridge = "vmbr0"
-    ip     = "192.168.50.${15 + count.index}/24"
-    gw     = "192.168.50.1"
-    tag    = 2
-    hwaddr = format("02:%s:%s:%s:%s:%s",
+    model   = "virtio"
+    bridge  = "vmbr0"
+    id     = 2
+    macaddr = format(
+      "02:%s:%s:%s:%s:%s",
       substr(random_id.mac[count.index].hex, 0, 2),
       substr(random_id.mac[count.index].hex, 2, 2),
       substr(random_id.mac[count.index].hex, 4, 2),
@@ -70,8 +63,11 @@ resource "proxmox_lxc" "test-container" {
     )
   }
 
+  # cloud-init network
+  ipconfig0 = "ip=192.168.50.${15 + count.index}/24,gw=192.168.50.1"
 
-  # writes to /root/.ssh/authorized_keys
-  ssh_public_keys = file(var.ssh_pubkey_path)
+  ciuser  = "ubuntu"
+  sshkeys = file(var.ssh_pubkey_path)
+
+  onboot = true
 }
-
