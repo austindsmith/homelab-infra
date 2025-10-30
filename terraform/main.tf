@@ -1,3 +1,5 @@
+# Hardware requirements for k3s:
+# https://docs.k3s.io/installation/requirements
 terraform {
   required_providers {
     proxmox = {
@@ -37,6 +39,16 @@ resource "proxmox_lxc" "test-container" {
   unprivileged = true
   onboot       = true
   start        = true
+
+  # This set is to get rid of the overlayfs error when installing k3s
+  features {
+    # Allows for containers within containers
+    nesting = true
+    # Allows the container to use the Linux keyring
+    #keyctl  = true
+    # Allows the container to use FUSE as a fallback to overlayfs
+    #fuse    = true
+  }
 
   rootfs {
     storage = "local-lvm"
