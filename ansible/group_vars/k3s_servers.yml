@@ -1,0 +1,2 @@
+# group_vars/k3s_servers.yml
+is_server: true

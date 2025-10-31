@@ -1,0 +1,2 @@
+# group_vars/k3s_agents.yml
+is_agent: true

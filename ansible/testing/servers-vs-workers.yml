@@ -1,0 +1,18 @@
+- name: Baseline k3s nodes
+  hosts: k3s
+  become: true
+  tasks:
+    - name: Disable UFW
+      community.general.ufw:
+        state: disabled
+      when: disable_ufw | default(false)
+
+    - name: Server-only config
+      ansible.builtin.debug:
+        msg: "I am a server"
+      when: is_server | default(false)
+
+    - name: Agent-only config
+      ansible.builtin.debug:
+        msg: "I am an agent"
+      when: is_agent | default(false)
