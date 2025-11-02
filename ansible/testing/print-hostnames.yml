@@ -1,5 +1,0 @@
-- hosts: k3s
-  gather_facts: true
-  tasks:
-    - ansible.builtin.debug:
-        msg: "{{ inventory_hostname }} -> {{ ansible_facts.hostname }}"

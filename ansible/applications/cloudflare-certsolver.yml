@@ -1,0 +1,23 @@
+# infra/ansible/k3s-cloudflare.yml
+- hosts: k3s_servers
+  become: true
+  vars_files:
+    - group_vars/k3s_servers/cloudflare.yml
+  tasks:
+    - name: ensure manifests dir
+      file:
+        path: /var/lib/rancher/k3s/server/manifests
+        state: directory
+        mode: 0755
+
+    - name: deploy cf secret
+      template:   # or copy:, template is nicer
+        src: ../../k8s/cert-manager/cloudflare-secret.yaml
+        dest: /var/lib/rancher/k3s/server/manifests/cloudflare-secret.yaml
+        mode: 0600
+
+    - name: deploy cf clusterissuer
+      copy:
+        src: ../../k8s/cert-manager/clusterissuer-letsencrypt-dns.yaml
+        dest: /var/lib/rancher/k3s/server/manifests/clusterissuer-letsencrypt-dns.yaml
+        mode: 0644
