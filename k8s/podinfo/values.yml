@@ -11,10 +11,11 @@ ingress:
     traefik.ingress.kubernetes.io/router.entrypoints: websecure
     traefik.ingress.kubernetes.io/router.tls: "true"
   hosts:
-    - host: podinfo.theblacklodge.dev
+    - host: test.theblacklodge.dev
       paths:
         - path: /
           pathType: Prefix
   tls:
-    - hosts: [podinfo.theblacklodge.dev]
-      secretName: podinfo-tls   # if using cert-manager, drop this and add issuer annotations
+    - hosts: [test.theblacklodge.dev]
+      # if using cert-manager, drop secretName and add issuer annotations instead
+      secretName: podinfo-tls
