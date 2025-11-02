@@ -1,0 +1,20 @@
+replicaCount: 1
+
+service:
+  type: ClusterIP
+  port: 9898
+
+ingress:
+  enabled: true
+  className: traefik
+  annotations:
+    traefik.ingress.kubernetes.io/router.entrypoints: websecure
+    traefik.ingress.kubernetes.io/router.tls: "true"
+  hosts:
+    - host: podinfo.theblacklodge.dev
+      paths:
+        - path: /
+          pathType: Prefix
+  tls:
+    - hosts: [podinfo.theblacklodge.dev]
+      secretName: podinfo-tls   # if using cert-manager, drop this and add issuer annotations
