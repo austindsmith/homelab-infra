@@ -1,23 +1,21 @@
-apiVersion: argoproj.io/v1alpha1
-kind: Application
+apiVersion: networking.k8s.io/v1
+kind: Ingress
 metadata:
   name: podinfo
   namespace: podinfo
+  annotations:
+    traefik.ingress.kubernetes.io/router.entrypoints: websecure
 spec:
-  project: default
-  destination:
-    server: https://kubernetes.default.svc
-    namespace: podinfo
-  source:
-    repoURL: https://github.com/stefanprodan/podinfo
-    chart: podinfo
-    targetRevision: 6.7.0
-    helm:
-      valueFiles:
-        - values.yaml
-  syncPolicy:
-    automated:
-      prune: true
-      selfHeal: true
-    syncOptions:
-      - CreateNamespace=true
+  ingressClassName: traefik
+  rules:
+  - host: test.theblacklodge.dev
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: podinfo
+            port:
+              number: 9898
+# omit spec.tls for now
