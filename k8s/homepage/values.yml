@@ -1,5 +1,5 @@
 env:
-  HOMEPAGE_ALLOWED_HOSTS: "home.theblacklodge.dev, localhost"
+  HOMEPAGE_ALLOWED_HOSTS: "home.theblacklodge.dev, localhost:3000, localhost:35233"
 
 ingress:
   main:
