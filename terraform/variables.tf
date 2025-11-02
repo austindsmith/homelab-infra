@@ -21,8 +21,7 @@ variable "node_name" {
 }
 
 variable "vm_template" {
-  type    = string
-  default = "ubuntu-24.04-standard_24.04-2_amd64.tar.zst"
+  default = "ubuntu-2004-cloudinit-template"
 }
 
 variable "vm_storage" {
@@ -37,7 +36,7 @@ variable "vm_password" {
 
 variable "vm_memory" {
   type    = number
-  default = 512
+  default = 2048
 }
 
 variable "vm_cores" {

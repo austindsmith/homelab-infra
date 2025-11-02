@@ -25,34 +25,49 @@ resource "random_id" "mac" {
 }
 
 resource "proxmox_vm_qemu" "k3s_vm" {
-  count       = var.vm_count
 
+  count = var.vm_count
   name        = "lab-k8s-${count.index + 1}"
-  target_node = var.node_name
   vmid        = 2000 + count.index
 
-  # use the template NAME
-  clone       = "ubuntu-24-04-ci"
-  full_clone  = true
-
+  target_node = var.node_name
+  clone      = var.vm_template
+  full_clone = true
   cpu {
     cores   = var.vm_cores
     sockets = 1
-    type    = "x86-64-v3"
+    type    = "host"
   }
 
+  agent  = 1
+  os_type = "cloud-init"
   memory = var.vm_memory
   scsihw = "virtio-scsi-pci"
-  agent  = 1
+  bootdisk = "scsi0"
 
-  # keep template disks → no disk{} here
-  # keep template cloud-init drive → no delete of ide2
-  # so: DO NOT set boot=...; let Proxmox inherit from template
-
+  disks {
+    scsi {
+      scsi0 {
+        disk {
+          storage = "local-lvm"
+          size    = "25G"
+        }
+      }
+    }
+    ide {
+      # pick ide2 if your template uses ide2
+      ide2 {
+        cloudinit {
+          storage = "local-lvm"  # or local-lvm if CI allowed there
+        }
+      }
+    }
+  }
   network {
-    model   = "virtio"
-    bridge  = "vmbr0"
-    id     = 2
+    model  = "virtio"
+    bridge = "vmbr0"
+    id     = 0
+    tag    = 2
     macaddr = format(
       "02:%s:%s:%s:%s:%s",
       substr(random_id.mac[count.index].hex, 0, 2),
@@ -63,10 +78,26 @@ resource "proxmox_vm_qemu" "k3s_vm" {
     )
   }
 
-  # cloud-init network
+  lifecycle {
+    ignore_changes = [
+      network,
+      disks
+    ]
+  }
+
   ipconfig0 = "ip=192.168.50.${15 + count.index}/24,gw=192.168.50.1"
 
-  ciuser  = "ubuntu"
+  vm_state = "running"
+  nameserver = "1.1.1.1 8.8.8.8"
+
+  ciuser  = "root"
+  cipassword = var.vm_password
+
+  vga {
+    type = "std"
+  }
+
+  
   sshkeys = file(var.ssh_pubkey_path)
 
   onboot = true

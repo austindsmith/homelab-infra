@@ -1,0 +1,30 @@
+# infra/ansible/k3s-addons.yml
+- hosts: k3s_servers
+  become: true
+  tasks:
+    - name: ensure manifests dir exists
+      file:
+        path: /var/lib/rancher/k3s/server/manifests
+        state: directory
+        owner: root
+        group: root
+        mode: 0755
+
+    - name: deploy cert-manager helmchart
+      copy:
+        dest: /var/lib/rancher/k3s/server/manifests/cert-manager.yaml
+        mode: 0644
+        content: |
+          apiVersion: helm.cattle.io/v1
+          kind: HelmChart
+          metadata:
+            name: cert-manager
+            namespace: kube-system
+          spec:
+            repo: https://charts.jetstack.io
+            chart: cert-manager
+            targetNamespace: cert-manager
+            createNamespace: true
+            version: v1.15.3
+            set:
+              crds.enabled: "true"

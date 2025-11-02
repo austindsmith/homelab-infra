@@ -16,6 +16,8 @@ override.tf.json
 
 # Ansible
 *.retry
+*.logs
+ansible/.artifacts
 
 # Editor/OS
 .vscode/
