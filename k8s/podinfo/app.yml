@@ -9,7 +9,7 @@ spec:
     server: https://kubernetes.default.svc
     namespace: podinfo
   source:
-    repoURL: https://stefanprodan.github.io/podinfo
+    repoURL: https://github.com/stefanprodan/podinfo
     chart: podinfo
     targetRevision: 6.7.0
     helm:
