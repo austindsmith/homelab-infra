@@ -1,0 +1,33 @@
+# infra/ansible/k3s-traefik.yml
+- hosts: k3s_servers
+  become: true
+  tasks:
+    - name: ensure k3s manifests dir
+      file:
+        path: /var/lib/rancher/k3s/server/manifests
+        state: directory
+        mode: 0755
+
+    - name: configure traefik
+      copy:
+        dest: /var/lib/rancher/k3s/server/manifests/traefik-config.yaml
+        mode: 0644
+        content: |
+          apiVersion: helm.cattle.io/v1
+          kind: HelmChartConfig
+          metadata:
+            name: traefik
+            namespace: kube-system
+          spec:
+            valuesContent: |-
+              ports:
+                web:
+                  port: 80
+                websecure:
+                  port: 443
+              ingressRoute:
+                dashboard:
+                  enabled: true
+              additionalArguments:
+                - "--entrypoints.web.address=:80"
+                - "--entrypoints.websecure.address=:443"

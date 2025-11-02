@@ -1,0 +1,29 @@
+# infra/ansible/k3s-argo.yml
+- hosts: k3s_servers
+  become: true
+  tasks:
+    - name: ensure k3s manifests dir
+      file:
+        path: /var/lib/rancher/k3s/server/manifests
+        state: directory
+        mode: 0755
+
+    - name: install argo cd via k3s helm controller
+      copy:
+        dest: /var/lib/rancher/k3s/server/manifests/argo-cd.yaml
+        mode: 0644
+        content: |
+          apiVersion: helm.cattle.io/v1
+          kind: HelmChart
+          metadata:
+            name: argo-cd
+            namespace: kube-system
+          spec:
+            repo: https://argoproj.github.io/argo-helm
+            chart: argo-cd
+            targetNamespace: argocd
+            createNamespace: true
+            version: 7.6.12
+            set:
+              server.insecure: "true"
+              configs.params.server.insecure: "true"
