@@ -6,7 +6,7 @@ ingress:
     enabled: true
     ingressClassName: traefik
     hosts:
-      - host: home.theblacklodge.org
+      - host: home.theblacklodge.dev
         paths:
           - path: /
             pathType: Prefix
