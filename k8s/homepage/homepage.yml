@@ -44,7 +44,7 @@ spec:
           image: ghcr.io/gethomepage/homepage:latest
           env:
             - name: HOMEPAGE_ALLOWED_HOSTS
-              value: test.theblacklodge.dev
+              value: home.theblacklodge.dev
             - name: HOMEPAGE_CONFIG_DIR
               value: /app/config
           volumeMounts:
@@ -78,7 +78,7 @@ metadata:
 spec:
   ingressClassName: traefik
   rules:
-    - host: test.theblacklodge.dev
+    - host: home.theblacklodge.dev
       http:
         paths:
           - path: /
