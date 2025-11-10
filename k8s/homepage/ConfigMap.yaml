@@ -35,6 +35,11 @@ data:
         - My Third Service:
             href: http://localhost/
             description: Homepage is 😎
+            
+    - My Fourth Group:
+        - My Third Service:
+            href: http://localhost/
+            description: Homepage is 😎
   widgets.yaml: |
     - kubernetes:
         cluster:
