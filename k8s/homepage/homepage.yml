@@ -48,8 +48,6 @@ spec:
     spec:
       volumes:
         - name: homepage-config
-          emptyDir: {}         # writable dir
-        - name: homepage-settings
           configMap:
             name: homepage-config
       containers:
