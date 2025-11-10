@@ -15,7 +15,9 @@ spec:
       volumes:
         - name: homepage-config
           configMap:
-            name: homepage-config        # Kustomize rewrites to hashed name
+            name: homepage-config
+        - name: homepage-logs
+          emptyDir: {}        # Kustomize rewrites to hashed name
       containers:
         - name: homepage
           image: ghcr.io/gethomepage/homepage:latest
@@ -28,5 +30,7 @@ spec:
             - name: homepage-config
               mountPath: /app/config
               readOnly: true
+            - name: homepage-logs
+              mountPath: /app/config/logs
           ports:
             - containerPort: 3000
