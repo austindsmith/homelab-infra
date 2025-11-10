@@ -18,7 +18,7 @@ data:
   bookmarks.yaml: |
     - Developer:
         - Github:
-            - abbr: GH
+            - abbr: GT
               href: https://github.com/
   services.yaml: |
     - My First Group:
@@ -35,7 +35,7 @@ data:
         - My Third Service:
             href: http://localhost/
             description: Homepage is 😎
-            
+
     - My Fourth Group:
         - My Third Service:
             href: http://localhost/
