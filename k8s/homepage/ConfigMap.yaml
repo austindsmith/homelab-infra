@@ -16,9 +16,9 @@ data:
   custom.css: ""
   custom.js: ""
   bookmarks.yaml: |
-    - Developer:
+    - DeveloDDper:
         - Github:
-            - abbr: TT
+            - abbr: GH
               href: https://github.com/
   services.yaml: |
     - My First Group:
