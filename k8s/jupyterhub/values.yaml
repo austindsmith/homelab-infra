@@ -87,7 +87,7 @@ hub:
   extraVolumeMounts: []
   image:
     name: quay.io/jupyterhub/k8s-hub
-    tag: "4.3.2-0.dev.git.7192.hc4697331"
+    tag: "4.3.1"
     pullPolicy:
     pullSecrets: []
   resources: {}
@@ -279,7 +279,7 @@ proxy:
       # tag is automatically bumped to new patch versions by the
       # watch-dependencies.yaml workflow.
       #
-      tag: "v3.6.0" # ref: https://hub.docker.com/_/traefik?tab=tags
+      tag: "v3.5.3" # ref: https://hub.docker.com/_/traefik?tab=tags
       pullPolicy:
       pullSecrets: []
     hsts:
@@ -331,7 +331,7 @@ proxy:
         type: "RuntimeDefault"
     image:
       name: quay.io/jupyterhub/k8s-secret-sync
-      tag: "4.3.2-0.dev.git.7191.h5dfc8a2f"
+      tag: "4.3.1"
       pullPolicy:
       pullSecrets: []
     resources: {}
@@ -371,7 +371,7 @@ singleuser:
   networkTools:
     image:
       name: quay.io/jupyterhub/k8s-network-tools
-      tag: "4.3.2-0.dev.git.7191.h5dfc8a2f"
+      tag: "4.3.1"
       pullPolicy:
       pullSecrets: []
     resources: {}
@@ -424,7 +424,7 @@ singleuser:
       subPath:
   image:
     name: quay.io/jupyterhub/k8s-singleuser-sample
-    tag: "4.3.2-0.dev.git.7192.hc4697331"
+    tag: "4.3.1"
     pullPolicy:
     pullSecrets: []
   startTimeout: 300
@@ -654,7 +654,7 @@ prePuller:
     # image and the configuration below relates to the hook-image-awaiter Job
     image:
       name: quay.io/jupyterhub/k8s-image-awaiter
-      tag: "4.3.2-0.dev.git.7191.h5dfc8a2f"
+      tag: "4.3.1"
       pullPolicy:
       pullSecrets: []
     containerSecurityContext:
@@ -724,7 +724,7 @@ ingress:
 httpRoute:
   enabled: false
   annotations: {}
-  hostnames: [jupyter.theblacklodge.dev]
+  hostnames: []
   gateway:
     name: your-gateway
     namespace: "" # required for a gateway resource in another namespace
