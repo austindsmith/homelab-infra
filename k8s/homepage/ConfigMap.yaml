@@ -21,7 +21,7 @@ data:
             - abbr: TT
               href: https://github.com/
   services.yaml: |
-    - My First Groups:
+    - My First Group:
         - My First Service:
             href: http://localhost/
             description: Homepage is awesome
