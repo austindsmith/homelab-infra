@@ -3,7 +3,7 @@ kind: StatefulSet
 metadata:
  name: pgadmin
 spec:
- serviceName: pgadmin-service
+ serviceName: pgadmin
  podManagementPolicy: Parallel
  replicas: 1
  updateStrategy:
