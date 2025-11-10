@@ -18,7 +18,7 @@ data:
   bookmarks.yaml: |
     - Developer:
         - Github:
-            - abbr: GH
+            - abbr: TT
               href: https://github.com/
   services.yaml: |
     - My First Group:
