@@ -36,34 +36,27 @@ metadata:
   namespace: homepage
   labels:
     app: homepage
-spec:
-  replicas: 1
-  selector:
-    matchLabels:
-      app: homepage
-  template:
-    metadata:
-      labels:
-        app: homepage
-    spec:
-      volumes:
-        - name: homepage-config      # writable dir
-        - name: homepage-settings
-          configMap:
-            name: homepage-config
-      containers:
-        - name: homepage
-          image: ghcr.io/gethomepage/homepage:latest
-          env:
-            - name: HOMEPAGE_ALLOWED_HOSTS
-              value: home.theblacklodge.dev
-            - name: HOMEPAGE_CONFIG_DIR
-              value: /app/config
-          volumeMounts:
-            - name: homepage-config
-              mountPath: /app/config
-          ports:
-            - containerPort: 3000
+  spec:
+    template:
+      spec:
+        volumes:
+          - name: homepage-config
+            configMap:
+              name: homepage-config
+        containers:
+          - name: homepage
+            image: ghcr.io/gethomepage/homepage:latest
+            env:
+              - name: HOMEPAGE_ALLOWED_HOSTS
+                value: home.theblacklodge.dev
+              - name: HOMEPAGE_CONFIG_DIR
+                value: /app/config
+            volumeMounts:
+              - name: homepage-config
+                mountPath: /app/config
+                readOnly: true
+            ports:
+              - containerPort: 3000
 ---
 apiVersion: v1
 kind: Service
