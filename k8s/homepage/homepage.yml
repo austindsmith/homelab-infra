@@ -14,7 +14,7 @@ data:
     theme: dark
   bookmarks.yaml: |            # ← add this
     - Developer:
-        - Github:
+        - Flappa:
             - abbr: TT
               href: https://github.com/
     
