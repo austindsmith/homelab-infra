@@ -5,7 +5,7 @@ namespace: homepage
 resources:
   - namespace.yaml
   - deployment.yaml
-  - services.yaml
+  - service.yaml
   - ingress.yaml
 
 configMapGenerator:
