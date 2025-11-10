@@ -15,6 +15,6 @@ spec:
             pathType: Prefix
             backend:
               service:
-                name: pgadmin
+                name: pgadmin-service
                 port:
                   number: 80
