@@ -1,20 +1,13 @@
-# values.yaml
-config:
-  bookmarks: |
-    - Dev:
-        - Github:
-            - abbr: TT
-              href: https://github.com
-  services: |
-    - Media:
-        - Plex:
-            href: http://plex
-            icon: plex
-  widgets: |
-    - resources:
-        cpu: true
-        memory: true
-  settings: |
-    title: My Homepage
-  kubernetes: |
-    mode: cluster
+- Developer:
+    - Flappa:
+        - abbr: TT
+          href: https://github.com/
+- Social:
+    - Reddit:
+        - icon: reddit
+          href: https://reddit.com/
+          description: The front page of the internet
+- Entertainment:
+    - YouTube:
+        - abbr: YT
+          href: https://youtube.com/
