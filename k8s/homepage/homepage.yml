@@ -55,8 +55,6 @@ spec:
             items:
               - key: settings.yaml
                 path: settings.yaml
-              - key: bookmarks.yaml
-                path: bookmarks.yaml
       containers:
         - name: homepage
           image: ghcr.io/gethomepage/homepage:latest
