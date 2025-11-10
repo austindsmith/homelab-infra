@@ -12,6 +12,11 @@ data:
   settings.yaml: |
     title: The Black Lodge
     theme: dark
+  bookmarks.yaml: |            # ← add this
+    - Dev:
+        - GitHub:
+            - abbr: TT
+              href: https://github.com
 ---
 apiVersion: apps/v1
 kind: Deployment
