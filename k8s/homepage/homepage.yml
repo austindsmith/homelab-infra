@@ -15,7 +15,7 @@ data:
   bookmarks.yaml: |            # ← add this
     - Developer:
         - Github:
-            - abbr: GH
+            - abbr: TT
               href: https://github.com/
     
     - Social:
