@@ -12,16 +12,18 @@ data:
   settings.yaml: |
     title: The Black Lodge
     theme: dark
-  bookmarks.yaml: |
+  bookmarks.yaml: |            # ← add this
     - Developer:
         - Flappa:
             - abbr: TT
               href: https://github.com/
+    
     - Social:
         - Reddit:
-            - icon: reddit
+            - icon: reddit.png
               href: https://reddit.com/
               description: The front page of the internet
+    
     - Entertainment:
         - YouTube:
             - abbr: YT
@@ -46,6 +48,8 @@ spec:
     spec:
       volumes:
         - name: homepage-config
+          emptyDir: {}         # writable dir
+        - name: homepage-settings
           configMap:
             name: homepage-config
       containers:
@@ -59,7 +63,6 @@ spec:
           volumeMounts:
             - name: homepage-config
               mountPath: /app/config
-              readOnly: true
           ports:
             - containerPort: 3000
 ---
