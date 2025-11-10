@@ -29,7 +29,7 @@ spec:
           volumeMounts:
             - name: homepage-config
               mountPath: /app/config
-              #readOnly: true         # configs read-only
+              readOnly: true         # configs read-only
             - name: homepage-logs
               mountPath: /app/config/logs   # writable
           ports:
