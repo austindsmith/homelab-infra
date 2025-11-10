@@ -28,7 +28,7 @@ spec:
           imagePullPolicy: Always
           env:
             - name: HOMEPAGE_ALLOWED_HOSTS
-              value: home.theblacklodge.dev,home.theblacklodge.dev:443,home.theblacklodge.dev:80 # required, may need port. See gethomepage.dev/installation/#homepage_allowed_hosts
+              value: home.theblacklodge.dev # required, may need port. See gethomepage.dev/installation/#homepage_allowed_hosts
           ports:
             - name: http
               containerPort: 3000
