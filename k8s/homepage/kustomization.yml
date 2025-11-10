@@ -5,7 +5,7 @@ namespace: homepage
 configMapGenerator:
   - name: homepage-config
     files:
-      - bookmarks.yaml
+      - bookmarks.yml
 
 generatorOptions:
   disableNameSuffixHash: false
