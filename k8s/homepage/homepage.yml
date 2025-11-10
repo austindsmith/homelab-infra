@@ -58,6 +58,9 @@ spec:
             - name: homepage-settings
               mountPath: /app/config/settings.yaml
               subPath: settings.yaml
+            - name: homepage-bookmarks
+              mountPath: /app/config/bookmarks.yml
+              subPath: bookmarks.yml
           ports:
             - containerPort: 3000
 ---
