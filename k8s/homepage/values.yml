@@ -1,0 +1,20 @@
+# values.yaml
+config:
+  bookmarks: |
+    - Dev:
+        - TEST:
+            - abbr: GH
+              href: https://github.com
+  services: |
+    - Media:
+        - Plex:
+            href: http://plex
+            icon: plex
+  widgets: |
+    - resources:
+        cpu: true
+        memory: true
+  settings: |
+    title: My Homepage
+  kubernetes: |
+    mode: cluster
