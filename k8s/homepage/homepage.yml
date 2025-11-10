@@ -13,11 +13,22 @@ data:
     title: The Black Lodge
     theme: dark
   bookmarks.yaml: |            # ← add this
-    - Dev:
-        - GitHub:
+    - Developer:
+        - Github:
             - abbr: TT
-              href: https://github.com
----
+              href: https://github.com/
+
+    - Social:
+        - Reddit:
+            - icon: reddit.png
+              href: https://reddit.com/
+              description: The front page of the internet
+
+    - Entertainment:
+        - YouTube:
+            - abbr: YT
+              href: https://youtube.com/
+    ---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
