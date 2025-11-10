@@ -11,7 +11,7 @@ data:
            "Group": "Servers",
            "Port": 5432,
            "Username": "postgres",
-           "Host": "pgadmin.theblacklodge.dev",
+           "Host": "postgres.theblacklodge.dev",
            "SSLMode": "prefer",
            "MaintenanceDB": "postgres"
          }
