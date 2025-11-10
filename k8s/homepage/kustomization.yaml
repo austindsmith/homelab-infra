@@ -15,6 +15,7 @@ configMapGenerator:
       - bookmarks.yaml
       - kubernetes.yaml
       - widgets.yaml
+      - docker.yaml
 
 generatorOptions:
   disableNameSuffixHash: false
