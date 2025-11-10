@@ -419,7 +419,7 @@ singleuser:
     dynamic:
       storageClass:
       pvcNameTemplate:
-      volumeNameTemplate: volume-{user_server}
+      volumeNameTemplate: "volume-{user_server}"
       storageAccessModes: [ReadWriteOnce]
       subPath:
   image:
