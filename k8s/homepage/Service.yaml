@@ -1,3 +1,4 @@
+# Service.yaml
 apiVersion: v1
 kind: Service
 metadata:
@@ -5,7 +6,7 @@ metadata:
   namespace: default
 spec:
   selector:
-    app.kubernetes.io/name: homepage
+    app.kubernetes.io/name: homepage   # <-- match Deployment
   ports:
     - port: 80
       targetPort: 3000
