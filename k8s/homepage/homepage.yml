@@ -47,7 +47,8 @@ spec:
         app: homepage
     spec:
       volumes:
-        - name: homepage-config
+        - name: homepage-config      # writable dir
+        - name: homepage-settings
           configMap:
             name: homepage-config
       containers:
