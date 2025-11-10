@@ -42,11 +42,19 @@ spec:
     matchLabels:
       app: homepage
   template:
+    metadata:
+      labels:
+        app: homepage
     spec:
       volumes:
         - name: homepage-config
+          emptyDir: {}         # writable dir
+        - name: homepage-settings
           configMap:
             name: homepage-config
+            items:
+              - key: settings.yaml
+                path: settings.yaml
       containers:
         - name: homepage
           image: ghcr.io/gethomepage/homepage:latest
@@ -58,7 +66,6 @@ spec:
           volumeMounts:
             - name: homepage-config
               mountPath: /app/config
-              readOnly: true
           ports:
             - containerPort: 3000
 ---
