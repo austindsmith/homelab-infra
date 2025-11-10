@@ -2,8 +2,8 @@
 config:
   bookmarks: |
     - Dev:
-        - TEST:
-            - abbr: GH
+        - Github:
+            - abbr: TT
               href: https://github.com
   services: |
     - Media:
