@@ -48,6 +48,8 @@ spec:
     spec:
       volumes:
         - name: homepage-config
+          emptyDir: {}         # writable dir
+        - name: homepage-settings
           configMap:
             name: homepage-config
       containers:
@@ -61,7 +63,6 @@ spec:
           volumeMounts:
             - name: homepage-config
               mountPath: /app/config
-              readOnly: true
           ports:
             - containerPort: 3000
 ---
