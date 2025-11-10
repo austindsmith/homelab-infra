@@ -19,9 +19,9 @@ spec:
         app.kubernetes.io/name: homepage
     spec:
       serviceAccountName: homepage
-      #automountServiceAccountToken: true
-      #dnsPolicy: ClusterFirst
-      #enableServiceLinks: true
+      automountServiceAccountToken: true
+      dnsPolicy: ClusterFirst
+      enableServiceLinks: true
       containers:
         - name: homepage
           image: "ghcr.io/gethomepage/homepage:latest"
@@ -32,7 +32,7 @@ spec:
           ports:
             - name: http
               containerPort: 3000
-              #protocol: TCP
+              protocol: TCP
           volumeMounts:
             - mountPath: /app/config/custom.js
               name: homepage-config
