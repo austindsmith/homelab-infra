@@ -12,11 +12,6 @@ data:
   settings.yaml: |
     title: The Black Lodge
     theme: dark
-  bookmarks.yml: |
-    - Dev:
-      - TEST:
-        - abbr: GH
-        - href: https://github.com
 ---
 apiVersion: apps/v1
 kind: Deployment
