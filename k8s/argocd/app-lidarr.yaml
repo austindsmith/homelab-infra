@@ -8,22 +8,23 @@ spec:
   source:
     repoURL: https://media-servarr.shw.al/charts
     chart: lidarr
-    targetRevision:  # chart version, e.g. "0.4.0" or whatever ArtifactHub shows
+    targetRevision: 0.4.0  # chart version
     helm:
       values: |
-        # inline override; keep this small and point to main file if you like
         env:
           PUID: 1000
           PGID: 1000
           TZ: America/Denver
+
         ingress:
-          enabled: true
-          className: traefik
-          hosts:
-            - host: lidarr.theblacklodge.dev
-              paths:
-                - path: /
-                  pathType: Prefix
+          main:
+            enabled: true
+            ingressClassName: traefik
+            hosts:
+              - host: lidarr.theblacklodge.dev
+                paths:
+                  - path: /
+                    pathType: Prefix
   destination:
     server: "https://kubernetes.default.svc"
     namespace: media
