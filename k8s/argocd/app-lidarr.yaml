@@ -11,20 +11,36 @@ spec:
     targetRevision: 0.4.0  # chart version
     helm:
       values: |
-        env:
-          PUID: 1000
-          PGID: 1000
-          TZ: America/Denver
+        # --- Runtime UID/GID etc (must be under deployment.container.env for this chart) ---
+        deployment:
+          container:
+            env:
+              - name: PUID
+                value: "1000"
+              - name: PGID
+                value: "1000"
+              - name: TZ
+                value: "America/Denver"
 
+        # --- Lidarr base URL; set '' if you want it at '/' instead of '/lidarr/' ---
+        application:
+          urlBase: ""
+          port: 8686
+
+        # --- Ingress config for this chart ---
         ingress:
-          main:
-            enabled: true
-            ingressClassName: traefik
-            hosts:
-              - host: lidarr.theblacklodge.dev
-                paths:
-                  - path: /
-                    pathType: Prefix
+          enabled: true
+          ingressClassName: traefik
+          host: lidarr.theblacklodge.dev
+          annotations:
+            cert-manager.io/cluster-issuer: letsencrypt-dns
+          tls:
+            - secretName: lidarr-tls
+              hosts:
+                - lidarr.theblacklodge.dev
+
+        # you still need volumes / PVCs as appropriate (config, downloads, music)
+        # see the chart README for examples
   destination:
     server: "https://kubernetes.default.svc"
     namespace: media
