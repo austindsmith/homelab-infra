@@ -26,17 +26,18 @@ spec:
           type: ClusterIP
           port: 80
 
-        ingress:
+        iingress:
           enabled: true
-          className: traefik
+          className: "traefik"
           annotations:
             cert-manager.io/cluster-issuer: letsencrypt-dns
           hosts:
             - host: n8n.theblacklodge.dev
+              paths:
+                - /
           tls:
             - hosts:
                 - n8n.theblacklodge.dev
-                  # this secret must exist / be issued by cert-manager
               secretName: n8n-tls
 
         # let the chart defaults handle persistence for now,
