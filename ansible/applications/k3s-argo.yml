@@ -7,7 +7,6 @@
         path: /var/lib/rancher/k3s/server/manifests
         state: directory
         mode: 0755
-
     - name: install argo cd via k3s helm controller
       copy:
         dest: /var/lib/rancher/k3s/server/manifests/argo-cd.yaml
