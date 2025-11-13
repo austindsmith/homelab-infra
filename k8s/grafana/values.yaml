@@ -12,9 +12,8 @@ grafana:
       cert-manager.io/cluster-issuer: "letsencrypt-dns"
     hosts:
       - host: grafana.theblacklodge.dev
-        paths:
-          - "/" # chart supports simple list of paths
+        path: /
     tls:
       - hosts:
           - grafana.theblacklodge.dev
-        secretName: grafana-tls
+        secretName: n8n-tls
