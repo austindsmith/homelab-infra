@@ -34,7 +34,8 @@ spec:
           hosts:
             - host: n8n.theblacklodge.dev
               paths:
-                - path: /
+                - path: 
+                    - /
                   pathType: Prefix
           tls:
             - hosts:
