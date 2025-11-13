@@ -1,70 +1,20 @@
 # k8s/n8n/values.yaml
-# Based on 8gears n8n-helm-chart defaults
-# Optional: can leave image defaults if you like
-image:
-  repository: n8nio/n8n
-  pullPolicy: IfNotPresent
-  tag: "" # use chart default appVersion
-#
-# Ingress
-#
-ingress:
-  enabled: true
-  className: "traefik"
-  annotations:
-    kubernetes.io/ingress.class: "traefik"
-    cert-manager.io/cluster-issuer: "letsencrypt-dns"
-  hosts:
-    - host: n8n.theblacklodge.dev
-      paths:
-        - "/" # chart supports simple list of paths
-  tls:
-    - hosts:
-        - n8n.theblacklodge.dev
-      secretName: n8n-tls
-#
-# Main n8n app settings
-#
-main:
-  # n8n config -> becomes environment variables
-  config:
-    n8n:
-      host: "n8n.theblacklodge.dev"
-      protocol: "https"
-      port: 5678
-      editor_base_url: "https://n8n.theblacklodge.dev"
-      webhook_url: "https://n8n.theblacklodge.dev"
-      secure_cookie: "true"
-      log_level: "info"
-      diagnostics_enabled: "false"
-    db:
-      type: "sqlite" # fine for simple homelab
-  # secrets (also mapped to env vars)
-  secret:
-    n8n:
-      encryption_key: "REPLACE_WITH_LONG_RANDOM_STRING"
-  # Service exposing the n8n pod
-  service:
-    type: ClusterIP
-    port: 5678
-  # PVC for /home/node/.n8n
-  persistence:
+n8n:
+  image:
+    repository: n8nio/n8n
+    pullPolicy: IfNotPresent
+    tag: "" # use chart default appVersion
+  ingress:
     enabled: true
-    type: dynamic
-    storageClass: longhorn
-    size: 5Gi
-    accessModes:
-      - ReadWriteOnce
-    # Optional but handy to avoid accidental PVC deletion:
+    className: "traefik"
     annotations:
-      helm.sh/resource-policy: keep
-#
-# No queue/worker mode for now
-#
-scaling:
-  enabled: false
-worker:
-  replicaCount: 0
-webhook:
-  enabled: false
-  replicaCount: 0
+      kubernetes.io/ingress.class: "traefik"
+      cert-manager.io/cluster-issuer: "letsencrypt-dns"
+    hosts:
+      - host: n8n.theblacklodge.dev
+        paths:
+          - "/" # chart supports simple list of paths
+    tls:
+      - hosts:
+          - n8n.theblacklodge.dev
+        secretName: n8n-tls
