@@ -33,10 +33,6 @@ spec:
             cert-manager.io/cluster-issuer: letsencrypt-dns
           hosts:
             - host: n8n.theblacklodge.dev
-              paths:
-                - path: 
-                    - /
-                  pathType: Prefix
           tls:
             - hosts:
                 - n8n.theblacklodge.dev
