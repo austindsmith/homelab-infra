@@ -1,8 +1,7 @@
 apiVersion: v2
 name: n8n-wrapper
 version: 0.1.0
-
 dependencies:
   - name: n8n
     version: 1.1.0
-    repository: https://github.com/8gears/n8n-helm-chart/charts/n8n
+    repository: https://8gears.container-registry.com/library/n8n
