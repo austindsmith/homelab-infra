@@ -1,38 +1,39 @@
-image:
-  tag: latest
+# k8s/n8n/values.yaml
+n8n:
+  #
+  # Global n8n chart values (from the 8gears chart)
+  # https://github.com/8gears/n8n-helm-chart
+  #
 
-# Runtime UID/GID/TZ
-env:
-  PUID: 1000        # your UID on the node
-  PGID: 1000        # your GID
-  TZ: America/Denver
-
-service:
-  type: ClusterIP
-  port: 80
-
-ingress:
-  enabled: true
-  # for Traefik v2+
-  className: traefik  # matches your Traefik setup
-  annotations:
-    cert-manager.io/cluster-issuer: letsencrypt-dns
-  hosts:
-    - host: n8n.theblacklodge.dev
-      paths:
-        - path: /
-          pathType: Prefix
-  tls:
-    - hosts:
-        - n8n.theblacklodge.dev
-      secretName: n8n-tls
-
-persistence:
-  config:
+  # Ingress (top-level in that chart)
+  ingress:
     enabled: true
-    size: 5Gi
-    accessMode: ReadWriteOnce
-    storageClass: longhorn
-  media:
-    enabled: true
-    existingClaim: media-pvc
+    className: traefik
+    annotations:
+      cert-manager.io/cluster-issuer: letsencrypt-dns
+    hosts:
+      - host: n8n.theblacklodge.dev
+        paths:
+          - path: /
+            pathType: Prefix
+    tls:
+      - hosts:
+          - n8n.theblacklodge.dev
+        secretName: n8n-tls
+  # Main app settings
+  main:
+    # Put your env vars here (converted to env in the pod)
+    extraEnv:
+      PUID: "1000"
+      PGID: "1000"
+      TZ: "America/Denver"
+    service:
+      type: ClusterIP
+      port: 80
+    persistence:
+      enabled: true
+      type: dynamic # dynamic PVC provisioning
+      storageClass: longhorn
+      size: 5Gi
+      accessModes:
+        - ReadWriteOnce
