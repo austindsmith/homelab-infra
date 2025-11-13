@@ -1,5 +1,5 @@
 apiVersion: v2
-name: n8n-wrapper
+name: n8n
 version: 0.1.0
 dependencies:
   - name: n8n
