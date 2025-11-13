@@ -8,7 +8,7 @@ spec:
   source:
     repoURL: https://github.com/8gears/n8n-helm-chart
     targetRevision: 1.1.0 # branch to track
-    #path: k8s/n8n # directory in repo with Kubernetes manifests
+    path: charts/n8n # directory in repo with Kubernetes manifests
   destination:
     server: https://kubernetes.default.svc # points to the in-cluster Kubernetes
     namespace: n8n # namespace in which to deploy this app
