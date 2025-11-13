@@ -1,52 +1,64 @@
-apiVersion: argoproj.io/v1alpha1
-kind: Application
-metadata:
-  name: lidarr
-  namespace: argocd
-spec:
-  project: default
-  source:
-    repoURL: https://media-servarr.shw.al/charts
-    chart: lidarr
-    targetRevision: 0.4.0  # chart version
-    helm:
-      values: |
-        # --- Runtime UID/GID etc (must be under deployment.container.env for this chart) ---
-        deployment:
-          container:
-            env:
-              - name: PUID
-                value: "1000"
-              - name: PGID
-                value: "1000"
-              - name: TZ
-                value: "America/Denver"
-
-        # --- Lidarr base URL; set '' if you want it at '/' instead of '/lidarr/' ---
-        application:
-          urlBase: ""
-          port: 8686
-
-        # --- Ingress config for this chart ---
-        ingress:
-          enabled: true
-          ingressClassName: traefik
-          host: lidarr.theblacklodge.dev
-          annotations:
-            cert-manager.io/cluster-issuer: letsencrypt-dns
-          tls:
-            - secretName: lidarr-tls
-              hosts:
-                - lidarr.theblacklodge.dev
-
-        # you still need volumes / PVCs as appropriate (config, downloads, music)
-        # see the chart README for examples
-  destination:
-    server: "https://kubernetes.default.svc"
-    namespace: media
-  syncPolicy:
-    automated:
-      prune: true
-      selfHeal: true
-    syncOptions:
-      - CreateNamespace=true
+# k8s/n8n/values.yaml
+n8n:
+  image:
+    repository: n8nio/n8n
+    pullPolicy: IfNotPresent
+    tag: "" # chart appVersion
+  #
+  # Ingress
+  #
+  ingress:
+    enabled: true
+    className: "traefik"
+    annotations:
+      kubernetes.io/ingress.class: "traefik"
+      cert-manager.io/cluster-issuer: "letsencrypt-dns"
+    hosts:
+      - host: n8n.theblacklodge.dev
+        paths:
+          - "/" # chart supports list of paths
+    tls:
+      - hosts:
+          - n8n.theblacklodge.dev
+        secretName: n8n-tls
+  #
+  # Main n8n app settings
+  #
+  main:
+    config:
+      n8n:
+        host: "n8n.theblacklodge.dev"
+        protocol: "https"
+        port: 5678
+        editor_base_url: "https://n8n.theblacklodge.dev"
+        webhook_url: "https://n8n.theblacklodge.dev"
+        secure_cookie: "true"
+        log_level: "info"
+        diagnostics_enabled: "false"
+      db:
+        type: "sqlite"
+    secret:
+      n8n:
+        encryption_key: "REPLACE_WITH_LONG_RANDOM_STRING"
+    service:
+      type: ClusterIP
+      port: 5678
+    persistence:
+      enabled: true
+      type: dynamic
+      storageClass: longhorn
+      size: 5Gi
+      accessModes:
+        - ReadWriteOnce
+      annotations:
+        helm.sh/resource-policy: keep
+  #
+  # No queue/worker mode for now
+  #
+  scaling:
+    enabled: false
+  worker:
+    replicaCount: 0
+  webhook:
+    enabled: false
+    replicaCount: 0
