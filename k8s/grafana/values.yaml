@@ -1,19 +1,14 @@
-# k8s/grafana/values.yaml
 grafana:
-  image:
-    repository: grafana/grafana
-    pullPolicy: IfNotPresent
-    tag: "" # use chart default appVersion
   ingress:
     enabled: true
-    className: "traefik"
+    ingressClassName: "traefik" # note: field is usually ingressClassName
     annotations:
       kubernetes.io/ingress.class: "traefik"
       cert-manager.io/cluster-issuer: "letsencrypt-dns"
+    path: / # single path for all hosts
     hosts:
-      - host: grafana.theblacklodge.dev
-        path: /
+      - grafana.theblacklodge.dev # list of strings, not maps
     tls:
       - hosts:
           - grafana.theblacklodge.dev
-        secretName: n8n-tls
+        secretName: grafana-tls
