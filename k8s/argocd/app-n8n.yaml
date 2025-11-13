@@ -5,48 +5,17 @@ metadata:
   namespace: argocd
 spec:
   project: default
-
   source:
-    repoURL: https://github.com/8gears/n8n-helm-chart
-    targetRevision: 1.1.0
-    path: charts/n8n
-
+    repoURL: https://github.com/austindsmith/homelab-infra
+    targetRevision: main
+    path: k8s/n8n
     helm:
-      # inline values for this chart
-      values: |
-        image:
-          tag: latest
-
-        env:
-          PUID: 1000
-          PGID: 1000
-          TZ: America/Denver
-
-        service:
-          type: ClusterIP
-          port: 80
-
-        ingress:
-          enabled: true
-          className: "traefik"
-          annotations:
-            cert-manager.io/cluster-issuer: letsencrypt-dns
-          hosts:
-            - host: n8n.theblacklodge.dev
-              paths:
-                - /
-          tls:
-            - hosts:
-                - n8n.theblacklodge.dev
-              secretName: n8n-tls
-
-        # let the chart defaults handle persistence for now,
-        # you can customize this later once it's up
-
+      valueFiles:
+        - values.yaml
+        #- values-dev.yaml    # or prod, etc.
   destination:
     server: https://kubernetes.default.svc
     namespace: n8n
-
   syncPolicy:
     automated:
       prune: true
