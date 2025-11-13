@@ -17,4 +17,4 @@ grafana:
     tls:
       - hosts:
           - grafana.theblacklodge.dev
-        secretName: n8n-tls
+        secretName: grafana-tls
