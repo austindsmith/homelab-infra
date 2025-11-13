@@ -1,0 +1,31 @@
+image:
+  tag: latest
+env:
+  PUID: 1000 # your UID on the node
+  PGID: 1000 # your GID
+  TZ: America/Denver # or your timezone
+service:
+  type: ClusterIP
+  port: 80
+ingress:
+  enabled: true
+  # for Traefik v2+
+  className: traefik # or "traefik-external" etc. to match your setup
+  hosts:
+    - host: n8n.theblacklodge.dev
+      paths:
+        - path: /
+          pathType: Prefix
+  tls:
+    - hosts:
+        - n8n.theblacklodge.dev
+      secretName: n8n-tls # must exist / be issued by cert-manager, etc.
+persistence:
+  config:
+    enabled: true
+    size: 5Gi
+    accessMode: ReadWriteOnce
+    storageClass: longhorn # or whatever you use
+  media:
+    enabled: true
+    existingClaim: media-pvc # PVC with your music/downloads mounted

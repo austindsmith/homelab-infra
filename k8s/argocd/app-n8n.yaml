@@ -1,0 +1,20 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: n8n
+  namespace: argocd # Argo CD's install namespace
+spec:
+  project: default # Argo CD Project (use "default" or define your own)
+  source:
+    repoURL: https://github.com/8gears/n8n-helm-chart
+    targetRevision: 1.1.0 # branch to track
+    path: k8s-manifests # directory in repo with Kubernetes manifests
+  destination:
+    server: https://kubernetes.default.svc # points to the in-cluster Kubernetes
+    namespace: n8n # namespace in which to deploy this app
+  syncPolicy:
+    automated:
+      prune: true # Prune resources removed from Git
+      selfHeal: true # Self-heal if something changes in cluster
+  syncOptions:
+    - CreateNamespace=true # Create namespace if it doesn't exist
