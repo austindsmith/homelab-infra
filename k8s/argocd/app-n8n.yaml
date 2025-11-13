@@ -18,3 +18,4 @@ spec:
       selfHeal: true # Self-heal if something changes in cluster
     syncOptions:
       - CreateNamespace=true # Create namespace if it doesn't exist
+

@@ -1,16 +1,22 @@
 image:
   tag: latest
+
+# Runtime UID/GID/TZ
 env:
-  PUID: 1000 # your UID on the node
-  PGID: 1000 # your GID
-  TZ: America/Denver # or your timezone
+  PUID: 1000        # your UID on the node
+  PGID: 1000        # your GID
+  TZ: America/Denver
+
 service:
   type: ClusterIP
   port: 80
+
 ingress:
   enabled: true
   # for Traefik v2+
-  className: traefik # or "traefik-external" etc. to match your setup
+  className: traefik  # matches your Traefik setup
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-dns
   hosts:
     - host: n8n.theblacklodge.dev
       paths:
@@ -19,13 +25,14 @@ ingress:
   tls:
     - hosts:
         - n8n.theblacklodge.dev
-      secretName: n8n-tls # must exist / be issued by cert-manager, etc.
+      secretName: n8n-tls
+
 persistence:
   config:
     enabled: true
     size: 5Gi
     accessMode: ReadWriteOnce
-    storageClass: longhorn # or whatever you use
+    storageClass: longhorn
   media:
     enabled: true
-    existingClaim: media-pvc # PVC with your music/downloads mounted
+    existingClaim: media-pvc
