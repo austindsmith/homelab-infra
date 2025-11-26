@@ -1,0 +1,86 @@
+version: "3.9"
+
+networks:
+  proxy:
+    external: true
+
+volumes:
+  listmonk_db:
+  listmonk_uploads:
+
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: listmonk-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${LISTMONK_DB_NAME}
+      POSTGRES_USER: ${LISTMONK_DB_USER}
+      POSTGRES_PASSWORD: ${LISTMONK_DB_PASS}
+      TZ: ${TZ}
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${LISTMONK_DB_USER} -d ${LISTMONK_DB_NAME}"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    volumes:
+      - listmonk_db:/var/lib/postgresql/data
+    networks:
+      - proxy
+
+  app:
+    image: listmonk/listmonk:latest
+    container_name: listmonk
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    # Use env-only config. First boot seeds DB, then runs.
+    command: >
+      sh -c "./listmonk --install --yes --config='' &&
+             ./listmonk --config=''"
+    environment:
+      TZ: ${TZ}
+
+      # ---- app ----
+      LISTMONK_app__address: "0.0.0.0:9000"
+      LISTMONK_app__public_url: "https://listmonk.${BASE_DOMAIN}"
+      # Creates the initial super admin. After first login, remove these vars.
+      LISTMONK_app__admin_username: ${LISTMONK_ADMIN_USER}
+      LISTMONK_app__admin_password: ${LISTMONK_ADMIN_PASS}
+
+      # ---- database ----
+      LISTMONK_db__host: db
+      LISTMONK_db__port: "5432"
+      LISTMONK_db__user: ${LISTMONK_DB_USER}
+      LISTMONK_db__password: ${LISTMONK_DB_PASS}
+      LISTMONK_db__database: ${LISTMONK_DB_NAME}
+      LISTMONK_db__ssl_mode: disable
+
+      # ---- outbound SMTP (example; adjust) ----
+      LISTMONK_smtp__host: ${SMTP_HOST}
+      LISTMONK_smtp__port: ${SMTP_PORT}
+      LISTMONK_smtp__username: ${SMTP_USER}
+      LISTMONK_smtp__password: ${SMTP_PASS}
+      LISTMONK_smtp__from_email: ${SMTP_FROM}
+      LISTMONK_smtp__tls: ${SMTP_TLS}
+
+    volumes:
+      - listmonk_uploads:/app/uploads
+    labels:
+      - "traefik.enable=true"
+
+      - "traefik.http.routers.listmonk.rule=Host(`listmonk.${BASE_DOMAIN}`)"
+      - "traefik.http.routers.listmonk.entrypoints=websecure"
+      - "traefik.http.routers.listmonk.tls.certresolver=${CERT_RESOLVER}"
+
+      - "traefik.http.services.listmonk.loadbalancer.server.port=9000"
+
+      # Optional hardening
+      - "traefik.http.middlewares.sec-headers.headers.stsSeconds=31536000"
+      - "traefik.http.middlewares.sec-headers.headers.stsIncludeSubdomains=true"
+      - "traefik.http.middlewares.sec-headers.headers.stsPreload=true"
+      - "traefik.http.routers.listmonk.middlewares=sec-headers@docker"
+
+    networks:
+      - proxy

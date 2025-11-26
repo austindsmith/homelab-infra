@@ -1,0 +1,99 @@
+version: "3.9"
+
+networks:
+  proxy:
+    external: true   # create once: docker network create proxy
+
+services:
+  # Optional helper: ensures dynamic dir exists (used for secure headers, etc.)
+  traefik-dynamic:
+    image: busybox:1.36
+    container_name: traefik-dynamic
+    command: >
+      sh -c "mkdir -p /dynamic &&
+             [ -f /dynamic/serverstransport.yml ] ||
+             printf '%s\n' 'http:' '  serversTransports:' '    code-https:' '      insecureSkipVerify: true'
+             > /dynamic/serverstransport.yml &&
+             tail -f /dev/null"
+    volumes:
+      - /opt/traefik/dynamic:/dynamic
+    restart: unless-stopped
+
+  traefik:
+    image: traefik:v3.5
+    container_name: traefik
+    depends_on:
+      - traefik-dynamic
+    networks: [proxy]
+    ports:
+      - "80:80"
+      - "443:443"
+    environment:
+      - TZ=America/Denver
+    command:
+      - --log.level=INFO
+      - --api.dashboard=true
+      # Providers
+      - --providers.docker=true
+      - --providers.docker.exposedbydefault=false
+      - --providers.docker.network=proxy
+      - --providers.file.directory=/etc/traefik/dynamic
+      - --providers.file.watch=true
+      # Entrypoints
+      - --entrypoints.web.address=:80
+      - --entrypoints.web.http.redirections.entrypoint.to=websecure
+      - --entrypoints.web.http.redirections.entrypoint.scheme=https
+      - --entrypoints.websecure.address=:443
+      # Let's Encrypt via HTTP-01 (no Cloudflare needed)
+      - --certificatesresolvers.letsencrypt.acme.email=${LE_EMAIL}
+      - --certificatesresolvers.letsencrypt.acme.storage=/letsencrypt/acme.json
+      - --certificatesresolvers.letsencrypt.acme.httpchallenge=true
+      - --certificatesresolvers.letsencrypt.acme.httpchallenge.entrypoint=web
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - /opt/traefik/letsencrypt:/letsencrypt           # Traefik will create acme.json here
+      - /opt/traefik/dynamic:/etc/traefik/dynamic
+      - /opt/traefik/htpasswd:/etc/traefik/htpasswd:ro  # if you later protect the dashboard
+    labels:
+      - traefik.enable=true
+      # Optional secured dashboard: https://traefik.${DOMAIN}
+      - traefik.http.routers.traefik.rule=Host(`traefik.${DOMAIN}`)
+      - traefik.http.routers.traefik.entrypoints=websecure
+      - traefik.http.routers.traefik.tls.certresolver=letsencrypt
+      - traefik.http.routers.traefik.service=api@internal
+      # comment next two lines if you don't want auth on the dashboard
+      - traefik.http.routers.traefik.middlewares=traefik-auth
+      - traefik.http.middlewares.traefik-auth.basicauth.usersfile=/etc/traefik/htpasswd
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+
+  overseerr:
+    image: lscr.io/linuxserver/overseerr
+    container_name: overseerr
+    networks: [proxy]
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=America/Denver
+      # Helps correct client IPs when behind Traefik
+      - OVERSEERR_TRUST_PROXY=true
+      # Sets app URL used in links/redirects
+      - APP_URL=https://requests.${DOMAIN}
+    volumes:
+      - /opt/appdata/overseerr:/config
+    labels:
+      - traefik.enable=true
+      - traefik.docker.network=proxy
+      - traefik.http.routers.overseerr.rule=Host(`requests.${DOMAIN}`)
+      - traefik.http.routers.overseerr.entrypoints=websecure
+      - traefik.http.routers.overseerr.tls.certresolver=letsencrypt
+      - traefik.http.services.overseerr.loadbalancer.server.port=5055
+      # (Optional) basic security hardening
+      - traefik.http.middlewares.secure-headers.headers.stsSeconds=31536000
+      - traefik.http.middlewares.secure-headers.headers.stsIncludeSubdomains=true
+      - traefik.http.middlewares.secure-headers.headers.stsPreload=true
+      - traefik.http.middlewares.ratelimit.ratelimit.average=80
+      - traefik.http.middlewares.ratelimit.ratelimit.burst=60
+      - traefik.http.routers.overseerr.middlewares=secure-headers,ratelimit
+    restart: unless-stopped

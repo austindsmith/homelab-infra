@@ -1,0 +1,168 @@
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: airbyte-config
+  namespace: datalake
+spec:
+  accessModes:
+    - ReadWriteMany
+  storageClassName: nfs-infrastructure
+  resources:
+    requests:
+      storage: 10Gi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: airbyte-webapp
+  namespace: datalake
+  labels:
+    app: airbyte
+    component: webapp
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: airbyte
+      component: webapp
+  template:
+    metadata:
+      labels:
+        app: airbyte
+        component: webapp
+    spec:
+      containers:
+      - name: airbyte-webapp
+        image: airbyte/webapp:0.50.0
+        ports:
+        - containerPort: 80
+          name: http
+        env:
+        - name: AIRBYTE_VERSION
+          value: "0.50.0"
+        - name: API_URL
+          value: "http://airbyte-server:8001/api/v1/"
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "250m"
+          limits:
+            memory: "512Mi"
+            cpu: "500m"
+        livenessProbe:
+          httpGet:
+            path: /
+            port: 80
+          initialDelaySeconds: 30
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /
+            port: 80
+          initialDelaySeconds: 10
+          periodSeconds: 5
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: airbyte-server
+  namespace: datalake
+  labels:
+    app: airbyte
+    component: server
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: airbyte
+      component: server
+  template:
+    metadata:
+      labels:
+        app: airbyte
+        component: server
+    spec:
+      containers:
+      - name: airbyte-server
+        image: airbyte/server:0.50.0
+        ports:
+        - containerPort: 8001
+          name: http
+        env:
+        - name: AIRBYTE_VERSION
+          value: "0.50.0"
+        - name: CONFIG_ROOT
+          value: /configs
+        - name: DATABASE_PASSWORD
+          value: "airbyte123"
+        - name: DATABASE_URL
+          value: "jdbc:postgresql://postgresql.core.svc.cluster.local:5432/airbyte"
+        - name: DATABASE_USER
+          value: "airbyte"
+        - name: WORKSPACE_ROOT
+          value: /workspace
+        resources:
+          requests:
+            memory: "512Mi"
+            cpu: "250m"
+          limits:
+            memory: "1Gi"
+            cpu: "500m"
+        volumeMounts:
+        - name: airbyte-config
+          mountPath: /configs
+          subPath: airbyte/configs
+        - name: airbyte-config
+          mountPath: /workspace
+          subPath: airbyte/workspace
+        livenessProbe:
+          httpGet:
+            path: /api/v1/health
+            port: 8001
+          initialDelaySeconds: 60
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /api/v1/health
+            port: 8001
+          initialDelaySeconds: 30
+          periodSeconds: 5
+      volumes:
+      - name: airbyte-config
+        persistentVolumeClaim:
+          claimName: airbyte-config
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: airbyte-webapp
+  namespace: datalake
+  labels:
+    app: airbyte
+    component: webapp
+spec:
+  ports:
+  - port: 80
+    targetPort: 80
+    name: http
+  selector:
+    app: airbyte
+    component: webapp
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: airbyte-server
+  namespace: datalake
+  labels:
+    app: airbyte
+    component: server
+spec:
+  ports:
+  - port: 8001
+    targetPort: 8001
+    name: http
+  selector:
+    app: airbyte
+    component: server

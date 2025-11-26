@@ -1,0 +1,64 @@
+---
+# Talos Trial Validation Playbook
+# Basic connectivity and system checks for Talos VMs
+# Note: Talos is immutable and doesn't use traditional SSH/package management
+
+- name: Validate Talos Trial VMs - Basic Connectivity
+  hosts: talos_trial
+  gather_facts: no
+  tasks:
+    - name: Check if VMs are reachable via ping
+      ansible.builtin.ping:
+      register: ping_result
+      ignore_errors: yes
+
+    - name: Display connectivity status
+      ansible.builtin.debug:
+        msg: "{{ inventory_hostname }} is {{ 'REACHABLE' if ping_result is success else 'UNREACHABLE' }}"
+
+    - name: Wait for VMs to be fully booted (if reachable)
+      ansible.builtin.wait_for:
+        host: "{{ ansible_host }}"
+        port: 50000  # Talos API port
+        delay: 5
+        timeout: 60
+        state: started
+      delegate_to: localhost
+      when: ping_result is success
+      ignore_errors: yes
+      register: talos_api_check
+
+    - name: Check Talos API availability
+      ansible.builtin.debug:
+        msg: "{{ inventory_hostname }} Talos API is {{ 'AVAILABLE' if talos_api_check is success else 'NOT AVAILABLE' }}"
+      when: ping_result is success
+
+- name: Display Summary
+  hosts: localhost
+  gather_facts: no
+  tasks:
+    - name: Summary
+      ansible.builtin.debug:
+        msg: |
+          ========================================
+          Talos Trial VM Validation Complete
+          ========================================
+          
+          VMs Created:
+          - talos-trial-01: 192.168.50.25 (VMID 9101)
+          - talos-trial-02: 192.168.50.26 (VMID 9102)
+          - talos-trial-03: 192.168.50.27 (VMID 9103)
+          
+          Resources per VM:
+          - Memory: 2GB
+          - CPU: 2 cores
+          - Disk: 20GB
+          
+          Next Steps:
+          1. Install talosctl CLI: curl -sL https://talos.dev/install | sh
+          2. Generate Talos configs: talosctl gen config talos-cluster https://192.168.50.25:6443
+          3. Apply configs to nodes
+          4. Bootstrap Kubernetes cluster
+          
+          These VMs are running alongside your existing k3s cluster!
+

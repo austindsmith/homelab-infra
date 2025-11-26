@@ -1,0 +1,46 @@
+# configure-networking.yml
+# Configures networking for K3s cluster
+# Prepares for Traefik LoadBalancer with nginx-proxy-manager upstream
+
+- name: Configure cluster networking
+  hosts: k3s_servers[0]
+  become: true
+  tasks:
+    - name: Create networking configuration directory
+      ansible.builtin.file:
+        path: /var/lib/rancher/k3s/server/manifests
+        state: directory
+        mode: '0755'
+
+    - name: Configure MetalLB IP pool
+      ansible.builtin.copy:
+        dest: /var/lib/rancher/k3s/server/manifests/metallb-config.yaml
+        content: |
+          apiVersion: v1
+          kind: ConfigMap
+          metadata:
+            namespace: kube-system
+            name: metallb-config
+          data:
+            config: |
+              address-pools:
+              - name: default
+                protocol: layer2
+                addresses:
+                - 192.168.50.15/32
+        mode: '0644'
+
+    - name: Wait for networking to be configured
+      ansible.builtin.pause:
+        seconds: 10
+
+    - name: Verify networking configuration
+      ansible.builtin.command: kubectl get configmap metallb-config -n kube-system
+      register: metallb_config
+      changed_when: false
+      failed_when: false
+
+    - name: Display networking status
+      ansible.builtin.debug:
+        msg: "Networking configured. LoadBalancer services will use 192.168.50.15"
+

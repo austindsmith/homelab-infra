@@ -1,0 +1,41 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: airbyte-webapp-simple
+  namespace: datalake
+  labels:
+    app: airbyte-webapp
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: airbyte-webapp
+  template:
+    metadata:
+      labels:
+        app: airbyte-webapp
+    spec:
+      containers:
+      - name: airbyte-webapp
+        image: airbyte/webapp:0.50.33
+        ports:
+        - containerPort: 80
+        env:
+        - name: AIRBYTE_VERSION
+          value: "0.50.33"
+        - name: API_URL
+          value: "/api/v1/"
+        - name: INTERNAL_API_HOST
+          value: "airbyte-server.datalake.svc.cluster.local:8001"
+        - name: CONNECTOR_BUILDER_API_HOST
+          value: "airbyte-server.datalake.svc.cluster.local:8001"
+        - name: KEYCLOAK_INTERNAL_HOST
+          value: "airbyte-server.datalake.svc.cluster.local:8001"
+        resources:
+          requests:
+            memory: "128Mi"
+            cpu: "100m"
+          limits:
+            memory: "256Mi"
+            cpu: "200m"

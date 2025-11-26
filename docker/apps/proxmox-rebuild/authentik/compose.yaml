@@ -1,0 +1,81 @@
+version: "3.9"
+
+x-ak-env: &akenv
+  AUTHENTIK_SECRET_KEY: ${AUTHENTIK_SECRET_KEY}
+  AUTHENTIK_POSTGRESQL__HOST: postgres
+  AUTHENTIK_POSTGRESQL__USER: ${AUTHENTIK_POSTGRESQL__USER}
+  AUTHENTIK_POSTGRESQL__PASSWORD: ${AUTHENTIK_POSTGRESQL__PASSWORD}
+  AUTHENTIK_POSTGRESQL__NAME: ${AUTHENTIK_POSTGRESQL__NAME}
+  AUTHENTIK_REDIS__HOST: ${AUTHENTIK_REDIS__HOST}
+  AUTHENTIK_REDIS__PORT: "${AUTHENTIK_REDIS__PORT}"
+  AUTHENTIK_COOKIE_DOMAIN: ${AUTHENTIK_COOKIE_DOMAIN}
+  AUTHENTIK_DISABLE_UPDATE_CHECK: ${AUTHENTIK_DISABLE_UPDATE_CHECK}
+  AUTHENTIK_ERROR_REPORTING__ENABLED: ${AUTHENTIK_ERROR_REPORTING__ENABLED}
+  AUTHENTIK_LISTEN__HTTP: ${AUTHENTIK_LISTEN__HTTP}
+  TZ: ${TZ}
+
+networks:
+  authentik: {}
+  proxy:
+    external: true   # you already have this for NPM
+
+volumes:
+  pg_authentik: {}
+  authentik_media: {}
+  authentik_templates: {}
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${AUTHENTIK_POSTGRESQL__USER}
+      POSTGRES_PASSWORD: ${AUTHENTIK_POSTGRESQL__PASSWORD}
+      POSTGRES_DB: ${AUTHENTIK_POSTGRESQL__NAME}
+      TZ: ${TZ}
+    healthcheck:
+      test: ["CMD-SHELL","pg_isready -U ${AUTHENTIK_POSTGRESQL__USER} -d ${AUTHENTIK_POSTGRESQL__NAME} || exit 1"]
+      interval: 5s
+      timeout: 3s
+      retries: 30
+    volumes:
+      - pg_authentik:/var/lib/postgresql/data
+    networks: [authentik]
+
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    command: ["redis-server","--save","","--appendonly","no"]
+    healthcheck:
+      test: ["CMD","redis-cli","ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 30
+    networks: [authentik]
+
+  authentik-server:
+    image: ghcr.io/goauthentik/server:latest
+    restart: unless-stopped
+    depends_on:
+      postgres: { condition: service_healthy }
+      redis: { condition: service_healthy }
+    environment: *akenv
+    command: server
+    volumes:
+      - authentik_media:/media
+      - authentik_templates:/templates
+    networks: [authentik, proxy]
+    expose: ["9000"]
+
+  authentik-worker:
+    image: ghcr.io/goauthentik/server:latest
+    restart: unless-stopped
+    depends_on:
+      postgres: { condition: service_healthy }
+      redis: { condition: service_healthy }
+    environment: *akenv
+    command: worker
+    volumes:
+      - authentik_media:/media
+      - authentik_templates:/templates
+    networks: [authentik]

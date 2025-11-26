@@ -1,0 +1,94 @@
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: dremio-data
+  namespace: datalake
+spec:
+  accessModes:
+    - ReadWriteMany
+  storageClassName: nfs-infrastructure
+  resources:
+    requests:
+      storage: 20Gi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: dremio
+  namespace: datalake
+  labels:
+    app: dremio
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: dremio
+  template:
+    metadata:
+      labels:
+        app: dremio
+    spec:
+      containers:
+      - name: dremio
+        image: dremio/dremio-oss:24.0
+        ports:
+        - containerPort: 9047
+          name: web
+        - containerPort: 31010
+          name: client
+        - containerPort: 45678
+          name: server
+        env:
+        - name: DREMIO_JAVA_SERVER_EXTRA_OPTS
+          value: "-Dpaths.local=/opt/dremio/data/db -Xms2g -Xmx4g"
+        - name: DREMIO_MAX_MEMORY_SIZE_MB
+          value: "4096"
+        volumeMounts:
+        - name: dremio-data
+          mountPath: /opt/dremio/data
+          subPath: dremio
+        resources:
+          requests:
+            memory: "2Gi"
+            cpu: "500m"
+          limits:
+            memory: "4Gi"
+            cpu: "2000m"
+        livenessProbe:
+          httpGet:
+            path: /
+            port: 9047
+          initialDelaySeconds: 60
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /
+            port: 9047
+          initialDelaySeconds: 30
+          periodSeconds: 5
+      volumes:
+      - name: dremio-data
+        persistentVolumeClaim:
+          claimName: dremio-data
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: dremio
+  namespace: datalake
+  labels:
+    app: dremio
+spec:
+  ports:
+  - port: 9047
+    targetPort: 9047
+    name: web
+  - port: 31010
+    targetPort: 31010
+    name: client
+  - port: 45678
+    targetPort: 45678
+    name: server
+  selector:
+    app: dremio

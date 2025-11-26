@@ -1,0 +1,19 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "dremio.fullname" . }}
+  labels:
+    {{- include "dremio.labels" . | nindent 4 }}
+spec:
+  type: ClusterIP
+  ports:
+    - port: 9047
+      targetPort: web
+      protocol: TCP
+      name: web
+    - port: 31010
+      targetPort: client
+      protocol: TCP
+      name: client
+  selector:
+    {{- include "dremio.selectorLabels" . | nindent 4 }}

@@ -1,0 +1,90 @@
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: mlflow-artifacts
+  namespace: datalake
+spec:
+  accessModes:
+    - ReadWriteMany
+  storageClassName: nfs-infrastructure
+  resources:
+    requests:
+      storage: 50Gi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mlflow
+  namespace: datalake
+  labels:
+    app: mlflow
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mlflow
+  template:
+    metadata:
+      labels:
+        app: mlflow
+    spec:
+      containers:
+      - name: mlflow
+        image: ghcr.io/mlflow/mlflow:v2.9.2
+        command: ["mlflow"]
+        args:
+        - "server"
+        - "--backend-store-uri"
+        - "sqlite:////mlflow/mlflow.db"
+        - "--default-artifact-root"
+        - "/mlflow/artifacts"
+        - "--host"
+        - "0.0.0.0"
+        - "--port"
+        - "5000"
+        ports:
+        - containerPort: 5000
+          name: http
+        volumeMounts:
+        - name: mlflow-artifacts
+          mountPath: /mlflow/artifacts
+          subPath: mlflow
+        resources:
+          requests:
+            memory: "512Mi"
+            cpu: "250m"
+          limits:
+            memory: "1Gi"
+            cpu: "500m"
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 5000
+          initialDelaySeconds: 30
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 5000
+          initialDelaySeconds: 10
+          periodSeconds: 5
+      volumes:
+      - name: mlflow-artifacts
+        persistentVolumeClaim:
+          claimName: mlflow-artifacts
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: mlflow
+  namespace: datalake
+  labels:
+    app: mlflow
+spec:
+  ports:
+  - port: 5000
+    targetPort: 5000
+    name: http
+  selector:
+    app: mlflow

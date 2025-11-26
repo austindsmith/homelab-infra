@@ -1,0 +1,53 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "superset.fullname" . }}-config
+  labels:
+    {{- include "superset.labels" . | nindent 4 }}
+data:
+  superset_config.py: |
+    import os
+    from flask_caching.backends.redis import RedisCache
+
+    # Database configuration
+    SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL')
+    
+    # Secret key for session management
+    SECRET_KEY = os.environ.get('SUPERSET_SECRET_KEY')
+    
+    # Cache configuration (using filesystem for simplicity)
+    CACHE_CONFIG = {
+        'CACHE_TYPE': 'FileSystemCache',
+        'CACHE_DIR': '/app/superset_home/cache'
+    }
+    
+    # Enable feature flags
+    FEATURE_FLAGS = {
+        'ENABLE_TEMPLATE_PROCESSING': True,
+        'DASHBOARD_NATIVE_FILTERS': True,
+        'DASHBOARD_CROSS_FILTERS': True,
+        'DASHBOARD_RBAC': True,
+    }
+    
+    # Security settings
+    WTF_CSRF_ENABLED = True
+    WTF_CSRF_TIME_LIMIT = None
+    
+    # Enable public role for demo purposes
+    PUBLIC_ROLE_LIKE_GAMMA = True
+    
+    # Row limit for SQL queries
+    ROW_LIMIT = 5000
+    
+    # Webserver configuration
+    SUPERSET_WEBSERVER_PORT = 8088
+    SUPERSET_WEBSERVER_TIMEOUT = 60
+    
+    # Enable CORS for development
+    ENABLE_CORS = True
+    CORS_OPTIONS = {
+        'supports_credentials': True,
+        'allow_headers': ['*'],
+        'resources': ['*'],
+        'origins': ['*']
+    }

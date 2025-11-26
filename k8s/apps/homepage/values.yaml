@@ -1,0 +1,127 @@
+s# Values for homepage
+replicaCount: 1
+
+image:
+  repository: ghcr.io/gethomepage/homepage
+  tag: "v0.8.8"
+  pullPolicy: IfNotPresent
+
+# Environment variables
+env:
+  PUID: "1000"
+  PGID: "1000"
+
+# Service configuration
+service:
+  type: ClusterIP
+  port: 3000
+
+# Resource limits
+resources:
+  requests:
+    memory: 128Mi
+    cpu: 50m
+  limits:
+    memory: 256Mi
+    cpu: 200m
+
+# Ingress configuration
+ingress:
+  enabled: true
+  className: traefik
+  annotations:
+    kubernetes.io/ingress.class: traefik
+    cert-manager.io/cluster-issuer: letsencrypt-dns
+  hosts:
+    - host: homepage.theblacklodge.dev
+      paths:
+        - path: /
+          pathType: Prefix
+  tls:
+    - secretName: homepage-tls
+      hosts:
+        - homepage.theblacklodge.dev
+
+# Homepage configuration
+config:
+  # Services configuration
+  services:
+    - Data Lakehouse:
+        - ArgoCD:
+            href: https://argo.theblacklodge.dev
+            description: GitOps Platform
+            icon: argocd.png
+        - MinIO Console:
+            href: https://minio-console.theblacklodge.dev
+            description: Object Storage
+            icon: minio.png
+        - Dremio:
+            href: https://dremio.theblacklodge.dev
+            description: Query Engine
+            icon: dremio.png
+        - Nessie:
+            href: https://nessie.theblacklodge.dev
+            description: Data Versioning
+            icon: nessie.png
+        - Superset:
+            href: https://superset.theblacklodge.dev
+            description: Data Visualization
+            icon: superset.png
+        - Spark:
+            href: https://spark.theblacklodge.dev
+            description: Distributed Processing
+            icon: spark.png
+        - MLflow:
+            href: https://mlflow.theblacklodge.dev
+            description: ML Lifecycle
+            icon: mlflow.png
+        - Airbyte:
+            href: https://airbyte.theblacklodge.dev
+            description: Data Integration
+            icon: airbyte.png
+
+    - Media Management:
+        - Sonarr:
+            href: https://sonarr.theblacklodge.dev
+            description: TV Series Management
+            icon: sonarr.png
+        - Radarr:
+            href: https://radarr.theblacklodge.dev
+            description: Movie Management
+            icon: radarr.png
+        - Lidarr:
+            href: https://lidarr.theblacklodge.dev
+            description: Music Management
+            icon: lidarr.png
+
+  # Widgets configuration
+  widgets:
+    - resources:
+        backend: kubernetes
+        expanded: true
+        cpu: true
+        memory: true
+    - search:
+        provider: duckduckgo
+        target: _blank
+    - datetime:
+        text_size: xl
+        format:
+          timeStyle: short
+          dateStyle: short
+          hourCycle: h23
+
+  # Settings
+  settings:
+    title: "The Black Lodge - Data Platform"
+    favicon: https://github.com/walkxcode/dashboard-icons/blob/main/png/homepage.png
+    theme: dark
+    color: slate
+    headerStyle: clean
+    layout:
+      Data Lakehouse:
+        style: row
+        columns: 4
+      Media Management:
+        style: row
+        columns: 3

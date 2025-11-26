@@ -1,0 +1,52 @@
+version: "3.9"
+
+services:
+  hbbr:
+    image: "${RUST_IMAGE}:${RUST_TAG}"
+    container_name: rustdesk-hbbr
+    restart: unless-stopped
+    environment:
+      - TZ=${TZ}
+      - PUID=${PUID}
+      - PGID=${PGID}
+    command: hbbr
+    volumes:
+      - rustdesk_data:/root/.config/rustdesk
+    ports:
+      - "${PORT_TCP_1}:${PORT_TCP_1}/tcp"   # TCP relay
+      - "${PORT_TCP_2}:${PORT_TCP_2}/tcp"   # TCP relay
+      - "${PORT_UDP}:${PORT_UDP}/udp"       # UDP relay
+    healthcheck:
+      test: ["CMD-SHELL", "nc -z localhost ${PORT_TCP_2}"]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+
+    # default bridge network is fine for RustDesk
+
+  hbbs:
+    image: "${RUST_IMAGE}:${RUST_TAG}"
+    container_name: rustdesk-hbbs
+    restart: unless-stopped
+    depends_on:
+      hbbr:
+        condition: service_healthy
+    environment:
+      - TZ=${TZ}
+      - PUID=${PUID}
+      - PGID=${PGID}
+    # Point rendezvous at the relay by hostname:port
+    command: sh -c "hbbs -r hbbr:${PORT_TCP_2}"
+    volumes:
+      - rustdesk_data:/root/.config/rustdesk
+    ports:
+      - "${PORT_HBBS}:${PORT_HBBS}/tcp"     # Rendezvous (ID server)
+    healthcheck:
+      test: ["CMD-SHELL", "nc -z localhost ${PORT_HBBS}"]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  rustdesk_data:
+    name: rustdesk_data

@@ -1,0 +1,25 @@
+services:
+  traefik:
+    image: traefik:v3.0
+    container_name: traefik
+    networks: [proxy]
+    ports:
+      - "80:80"
+      - "443:443"
+    labels:
+      - traefik.enable=true
+      - traefik.docker.network=proxy
+
+      # HTTPS dashboard
+      - traefik.http.routers.traefik.rule=Host(`traefik.${DOMAIN}`)
+      - traefik.http.routers.traefik.entrypoints=websecure
+      - traefik.http.routers.traefik.tls.certresolver=letsencrypt
+      - traefik.http.routers.traefik.service=api@internal
+      - traefik.http.routers.traefik.middlewares=traefik-auth
+      - traefik.http.middlewares.traefik-auth.basicauth.usersfile=/etc/traefik/htpasswd
+
+      # HTTP → HTTPS redirect (for all hosts)
+      - traefik.http.routers.http-redirect.rule=HostRegexp(`{any:.+}`)
+      - traefik.http.routers.http-redirect.entrypoints=web
+      - traefik.http.routers.http-redirect.middlewares=to-https
+      - traefik.http.middlewares.to-https.redirectscheme.scheme=https

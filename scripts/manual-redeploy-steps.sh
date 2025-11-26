@@ -1,0 +1,60 @@
+#!/bin/bash
+
+# Manual Redeployment Steps
+# Since kubectl authentication isn't working automatically, follow these steps
+
+echo "=== Manual Redeployment Guide ==="
+echo ""
+echo "The kubeconfig certificates may have expired. Here's how to fix it:"
+echo ""
+echo "OPTION 1: Get fresh kubeconfig from k3s server"
+echo "---------------------------------------------"
+echo "Run these commands on the k3s server (192.168.50.15):"
+echo ""
+echo "  # On the k3s server:"
+echo "  sudo cat /etc/rancher/k3s/k3s.yaml"
+echo ""
+echo "Then copy the output and save it to ~/.kube/config on this machine"
+echo "Then run: sed -i 's/127.0.0.1/192.168.50.15/g' ~/.kube/config"
+echo ""
+echo "OPTION 2: Use SSH to copy it directly"
+echo "-------------------------------------"
+echo "If you have the VM password, run:"
+echo ""
+echo "  ssh austin@192.168.50.15 'sudo cat /etc/rancher/k3s/k3s.yaml' | sed 's/127.0.0.1/192.168.50.15/g' > ~/.kube/config"
+echo "  chmod 600 ~/.kube/config"
+echo ""
+echo "OPTION 3: Access via Proxmox console"
+echo "------------------------------------"
+echo "1. Open Proxmox web UI"
+echo "2. Select the k3s-1 VM (192.168.50.15)"
+echo "3. Click Console"
+echo "4. Login and run: sudo cat /etc/rancher/k3s/k3s.yaml"
+echo "5. Copy the output to ~/.kube/config on this machine"
+echo "6. Run: sed -i 's/127.0.0.1/192.168.50.15/g' ~/.kube/config"
+echo ""
+echo "=========================================="
+echo ""
+echo "After you have kubectl working, run:"
+echo "  kubectl get nodes"
+echo ""
+echo "If that works, then run the full redeployment:"
+echo "  cd /mnt/secondary_ssd/Code/homelab/infra/scripts"
+echo "  ./full-redeploy.sh"
+echo ""
+echo "=========================================="
+echo ""
+
+# Check if kubectl works
+echo "Testing kubectl connection..."
+if kubectl get nodes &>/dev/null; then
+    echo "✓ kubectl is working!"
+    echo ""
+    echo "Ready to redeploy. Run:"
+    echo "  ./full-redeploy.sh"
+else
+    echo "✗ kubectl is not working yet."
+    echo ""
+    echo "Follow one of the options above to get a fresh kubeconfig."
+fi
+

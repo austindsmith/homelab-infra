@@ -1,7 +1,0 @@
-apiVersion: v2
-name: n8n
-version: 0.1.0
-dependencies:
-  - name: n8n
-    version: 1.1.0
-    repository: "oci://8gears.container-registry.com/library" #Note: this came from the install command from ArtifactHub.io

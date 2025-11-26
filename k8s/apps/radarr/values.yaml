@@ -1,0 +1,56 @@
+# Values for sonarr
+replicaCount: 1
+
+image:
+  repository: lscr.io/linuxserver/radarr
+  tag: "latest"
+  pullPolicy: IfNotPresent
+
+# Environment variables
+env:
+  PUID: "1000"
+  PGID: "1000"
+  TZ: "America/Denver"
+
+# Service configuration
+service:
+  type: ClusterIP
+  port: 7878
+
+# Resource limits
+resources:
+  requests:
+    memory: 256Mi
+    cpu: 100m
+  limits:
+    memory: 512Mi
+    cpu: 500m
+
+# Persistent storage
+persistence:
+  config:
+    enabled: true
+    size: 1Gi
+    storageClass: ""
+  media:
+    enabled: true
+    existingClaim: ""
+    # For demo purposes, we'll use emptyDir
+    # In production, this should be a persistent volume or NFS mount
+
+# Ingress configuration
+ingress:
+  enabled: true
+  className: traefik
+  annotations:
+    kubernetes.io/ingress.class: traefik
+    cert-manager.io/cluster-issuer: letsencrypt-dns
+  hosts:
+    - host: radarr.theblacklodge.dev
+      paths:
+        - path: /
+          pathType: Prefix
+  tls:
+    - secretName: radarr-tls
+      hosts:
+        - radarr.theblacklodge.dev

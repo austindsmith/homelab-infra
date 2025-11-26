@@ -1,0 +1,21 @@
+version: "3.9"
+
+services:
+  cloudflare-ddns:
+    image: favonia/cloudflare-ddns:1
+    container_name: cloudflare-ddns
+    network_mode: host           # no inbound ports; makes IP detection simple
+    restart: always
+    user: "1000:1000"
+    read_only: true
+    cap_drop: [all]
+    security_opt:
+      - no-new-privileges:true
+    environment:
+      - TZ=America/Denver
+      - CLOUDFLARE_API_TOKEN=${CLOUDFLARE_API_TOKEN}
+      - DOMAINS=requests.theblacklodge.org
+      - PROXIED=true             # orange-cloud the record; set false if you need raw ports
+      - IP6_PROVIDER=none        # you don’t have IPv6 right now
+      - UPDATE_ON_START=true
+      - UPDATE_CRON=@every 5m    # recheck every 5 minutes

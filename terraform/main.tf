@@ -27,7 +27,7 @@ resource "random_id" "mac" {
 resource "proxmox_vm_qemu" "k3s_vm" {
 
   count = var.vm_count
-  name        = "lab-k8s-${count.index + 1}"
+  name        = "lab-k8s-0${count.index + 1}"
   vmid        = 2000 + count.index
 
   target_node = var.node_name
@@ -49,8 +49,8 @@ resource "proxmox_vm_qemu" "k3s_vm" {
     scsi {
       scsi0 {
         disk {
-          storage = "local-lvm"
-          size    = "25G"
+          storage = var.vm_disk_storage
+          size    = var.vm_disk_size
         }
       }
     }
@@ -58,7 +58,7 @@ resource "proxmox_vm_qemu" "k3s_vm" {
       # pick ide2 if your template uses ide2
       ide2 {
         cloudinit {
-          storage = "local-lvm"  # or local-lvm if CI allowed there
+          storage = var.vm_disk_storage
         }
       }
     }

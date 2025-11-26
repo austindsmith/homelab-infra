@@ -1,0 +1,239 @@
+---
+- name: Deploy all Kubernetes applications
+  hosts: k3s_servers[0]
+  become: no
+  tasks:
+    - name: Wait for K3s to be ready
+      k8s_info:
+        api_version: v1
+        kind: Node
+        kubeconfig: ~/.kube/config
+      register: nodes
+      until: nodes.resources | length > 0
+      retries: 30
+      delay: 10
+
+    - name: Create namespaces
+      k8s:
+        name: "{{ item }}"
+        api_version: v1
+        kind: Namespace
+        state: present
+        kubeconfig: ~/.kube/config
+      loop:
+        - datalake
+        - apps
+        - monitoring
+
+    - name: Install NFS CSI driver
+      k8s:
+        state: present
+        definition: "{{ lookup('file', '../k8s/storage/nfs-csi-driver.yaml') | from_yaml_all | list }}"
+        kubeconfig: ~/.kube/config
+
+    - name: Create NFS storage classes
+      k8s:
+        state: present
+        definition: "{{ lookup('file', '../k8s/storage/nfs-storage-classes.yaml') | from_yaml_all | list }}"
+        kubeconfig: ~/.kube/config
+
+    - name: Create infrastructure PVCs
+      k8s:
+        state: present
+        definition: "{{ lookup('file', '../k8s/storage/working-infrastructure-pvcs.yaml') | from_yaml_all | list }}"
+        kubeconfig: ~/.kube/config
+
+    - name: Create monitoring storage PVC
+      k8s:
+        state: present
+        definition:
+          apiVersion: v1
+          kind: PersistentVolumeClaim
+          metadata:
+            name: monitoring-storage
+            namespace: monitoring
+          spec:
+            accessModes:
+              - ReadWriteMany
+            storageClassName: nfs-infrastructure
+            resources:
+              requests:
+                storage: 50Gi
+        kubeconfig: ~/.kube/config
+
+    - name: Create CIFS credentials secret
+      k8s:
+        state: present
+        definition:
+          apiVersion: v1
+          kind: Secret
+          metadata:
+            name: media-cifs-secret
+            namespace: apps
+          type: Opaque
+          stringData:
+            username: k8s
+            password: "{{ nas_password | default('Crawling8-Impending9-Stiffness2-Unsold0-Passing7') }}"
+        kubeconfig: ~/.kube/config
+
+    - name: Deploy media mount DaemonSet
+      k8s:
+        state: present
+        definition: "{{ lookup('file', '../k8s/storage/mount-media-daemonset.yaml') | from_yaml_all | list }}"
+        kubeconfig: ~/.kube/config
+
+    - name: Wait for media mounts to be ready
+      pause:
+        seconds: 30
+
+    # Deploy Core Services
+    - name: Deploy MinIO
+      k8s:
+        state: present
+        definition: "{{ lookup('file', '../k8s/datalake/minio/deployment.yaml') | from_yaml_all | list }}"
+        kubeconfig: ~/.kube/config
+
+    # Deploy Data Lakehouse Apps
+    - name: Deploy MLflow PostgreSQL
+      k8s:
+        state: present
+        definition: "{{ lookup('file', '../k8s/datalake/mlflow/postgres.yaml') | from_yaml_all | list }}"
+        kubeconfig: ~/.kube/config
+
+    - name: Deploy MLflow
+      k8s:
+        state: present
+        definition: "{{ lookup('file', '../k8s/datalake/mlflow/deployment.yaml') | from_yaml_all | list }}"
+        kubeconfig: ~/.kube/config
+
+    - name: Deploy Airbyte PostgreSQL
+      k8s:
+        state: present
+        definition: "{{ lookup('file', '../k8s/datalake/airbyte/postgres.yaml') | from_yaml_all | list }}"
+        kubeconfig: ~/.kube/config
+
+    - name: Deploy Airbyte
+      k8s:
+        state: present
+        definition: "{{ lookup('file', '../k8s/datalake/airbyte/deployment.yaml') | from_yaml_all | list }}"
+        kubeconfig: ~/.kube/config
+
+    - name: Deploy Dremio
+      k8s:
+        state: present
+        definition: "{{ lookup('file', '../k8s/datalake/dremio/deployment.yaml') | from_yaml_all | list }}"
+        kubeconfig: ~/.kube/config
+
+    - name: Deploy Nessie PostgreSQL
+      k8s:
+        state: present
+        definition: "{{ lookup('file', '../k8s/datalake/nessie/postgres.yaml') | from_yaml_all | list }}"
+        kubeconfig: ~/.kube/config
+
+    - name: Deploy Nessie
+      k8s:
+        state: present
+        definition: "{{ lookup('file', '../k8s/datalake/nessie/deployment.yaml') | from_yaml_all | list }}"
+        kubeconfig: ~/.kube/config
+
+    - name: Deploy Superset
+      k8s:
+        state: present
+        definition: "{{ lookup('file', '../k8s/datalake/superset/deployment.yaml') | from_yaml_all | list }}"
+        kubeconfig: ~/.kube/config
+
+    # Deploy Media Apps
+    - name: Deploy Sonarr with NAS
+      k8s:
+        state: present
+        definition: "{{ lookup('file', '../k8s/apps/sonarr/deployment-with-nas.yaml') | from_yaml_all | list }}"
+        kubeconfig: ~/.kube/config
+
+    - name: Deploy Radarr with NAS
+      k8s:
+        state: present
+        definition: "{{ lookup('file', '../k8s/apps/radarr/deployment-with-nas.yaml') | from_yaml_all | list }}"
+        kubeconfig: ~/.kube/config
+
+    - name: Deploy Lidarr with NAS
+      k8s:
+        state: present
+        definition: "{{ lookup('file', '../k8s/apps/lidarr/deployment-with-nas.yaml') | from_yaml_all | list }}"
+        kubeconfig: ~/.kube/config
+
+    # Deploy Monitoring
+    - name: Deploy Prometheus config
+      k8s:
+        state: present
+        definition: "{{ lookup('file', '../k8s/monitoring/prometheus/config.yaml') | from_yaml_all | list }}"
+        kubeconfig: ~/.kube/config
+
+    - name: Deploy Prometheus
+      k8s:
+        state: present
+        definition: "{{ lookup('file', '../k8s/monitoring/prometheus/deployment.yaml') | from_yaml_all | list }}"
+        kubeconfig: ~/.kube/config
+
+    - name: Deploy Grafana
+      k8s:
+        state: present
+        definition: "{{ lookup('file', '../k8s/monitoring/grafana/deployment.yaml') | from_yaml_all | list }}"
+        kubeconfig: ~/.kube/config
+
+    # Deploy Homepage
+    - name: Deploy Homepage config
+      k8s:
+        state: present
+        definition: "{{ lookup('file', '../k8s/apps/homepage/config.yaml') | from_yaml_all | list }}"
+        kubeconfig: ~/.kube/config
+
+    - name: Deploy Homepage
+      k8s:
+        state: present
+        definition: "{{ lookup('file', '../k8s/apps/homepage/deployment.yaml') | from_yaml_all | list }}"
+        kubeconfig: ~/.kube/config
+
+    - name: Wait for all deployments to be ready
+      k8s_info:
+        api_version: apps/v1
+        kind: Deployment
+        namespace: "{{ item }}"
+        kubeconfig: ~/.kube/config
+        wait: true
+        wait_condition:
+          type: Available
+          status: "True"
+        wait_timeout: 300
+      loop:
+        - datalake
+        - apps
+        - monitoring
+      ignore_errors: yes
+
+    - name: Display application URLs
+      debug:
+        msg: |
+          🎉 All applications deployed! Access them at:
+          
+          📊 Data Lakehouse:
+          - MinIO Console: https://minio-console.theblacklodge.dev
+          - Superset: https://superset.theblacklodge.dev  
+          - MLflow: https://mlflow.theblacklodge.dev
+          - Airbyte: https://airbyte.theblacklodge.dev
+          - Dremio: https://dremio.theblacklodge.dev
+          - Nessie: https://nessie.theblacklodge.dev
+          
+          🎬 Media Services:
+          - Sonarr: https://sonarr.theblacklodge.dev
+          - Radarr: https://radarr.theblacklodge.dev
+          - Lidarr: https://lidarr.theblacklodge.dev
+          
+          📈 Monitoring:
+          - Prometheus: https://prometheus.theblacklodge.dev
+          - Grafana: https://grafana.theblacklodge.dev (admin/admin123)
+          
+          🏠 Dashboard:
+          - Homepage: https://homepage.theblacklodge.dev
+          
+          🔧 Core:
+          - ArgoCD: https://argocd.theblacklodge.dev

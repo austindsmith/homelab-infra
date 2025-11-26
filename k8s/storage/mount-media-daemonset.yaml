@@ -1,0 +1,75 @@
+---
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: mount-media-shares
+  namespace: kube-system
+spec:
+  selector:
+    matchLabels:
+      name: mount-media-shares
+  template:
+    metadata:
+      labels:
+        name: mount-media-shares
+    spec:
+      hostNetwork: true
+      hostPID: true
+      containers:
+      - name: mount-media
+        image: alpine:latest
+        command: ["/bin/sh"]
+        args:
+        - -c
+        - |
+          apk add --no-cache cifs-utils
+          mkdir -p /host/mnt/nas-media/TV /host/mnt/nas-media/Movies /host/mnt/nas-media/Music /host/mnt/nas-media/Downloads
+          
+          # Mount TV share
+          if ! mountpoint -q /host/mnt/nas-media/TV; then
+            mount -t cifs //192.168.1.131/media/TV /host/mnt/nas-media/TV -o username=k8s,password='Crawling8-Impending9-Stiffness2-Unsold0-Passing7',uid=1000,gid=1000,dir_mode=0755,file_mode=0644
+          fi
+          
+          # Mount Movies share
+          if ! mountpoint -q /host/mnt/nas-media/Movies; then
+            mount -t cifs //192.168.1.131/media/Movies /host/mnt/nas-media/Movies -o username=k8s,password='Crawling8-Impending9-Stiffness2-Unsold0-Passing7',uid=1000,gid=1000,dir_mode=0755,file_mode=0644
+          fi
+          
+          # Mount Music share
+          if ! mountpoint -q /host/mnt/nas-media/Music; then
+            mount -t cifs //192.168.1.131/media/Music /host/mnt/nas-media/Music -o username=k8s,password='Crawling8-Impending9-Stiffness2-Unsold0-Passing7',uid=1000,gid=1000,dir_mode=0755,file_mode=0644
+          fi
+          
+          # Mount Downloads share
+          if ! mountpoint -q /host/mnt/nas-media/Downloads; then
+            mount -t cifs //192.168.1.131/media/Downloads /host/mnt/nas-media/Downloads -o username=k8s,password='Crawling8-Impending9-Stiffness2-Unsold0-Passing7',uid=1000,gid=1000,dir_mode=0755,file_mode=0644
+          fi
+          
+          echo "All media shares mounted successfully"
+          # Keep container running and check mounts every 60 seconds
+          while true; do
+            sleep 60
+            if ! mountpoint -q /host/mnt/nas-media/TV; then
+              echo "TV share unmounted, remounting..."
+              mount -t cifs //192.168.1.131/media/TV /host/mnt/nas-media/TV -o username=k8s,password='Crawling8-Impending9-Stiffness2-Unsold0-Passing7',uid=1000,gid=1000,dir_mode=0755,file_mode=0644
+            fi
+          done
+        securityContext:
+          privileged: true
+        volumeMounts:
+        - name: host-root
+          mountPath: /host
+          mountPropagation: Bidirectional
+        resources:
+          requests:
+            memory: "64Mi"
+            cpu: "50m"
+          limits:
+            memory: "128Mi"
+            cpu: "100m"
+      volumes:
+      - name: host-root
+        hostPath:
+          path: /
+      tolerations:
+      - operator: Exists

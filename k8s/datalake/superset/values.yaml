@@ -1,0 +1,54 @@
+# Values for superset
+# Configure resources, ingress, and application-specific settings
+replicaCount: 1
+
+image:
+  repository: apache/superset
+  tag: "3.0.1"
+  pullPolicy: IfNotPresent
+
+# Admin user configuration
+admin:
+  username: admin
+  password: "{{ .Values.global.credentials.supersetAdminPassword | default \"admin123\" }}"
+  email: admin@theblacklodge.dev
+  # Note: Use global-secrets.yaml or set via --set global.credentials.supersetAdminPassword=xxx
+
+# Secret key for session management (change in production)
+secretKey: "your-secret-key-change-this-in-production-please"
+
+resources:
+  requests:
+    memory: 512Mi
+    cpu: 250m
+  limits:
+    memory: 1Gi
+    cpu: 500m
+
+# PostgreSQL database for Superset metadata
+postgresql:
+  enabled: true
+  auth:
+    postgresPassword: "{{ .Values.global.credentials.postgresSupersetPassword | default \"superset\" }}"
+    username: superset
+    database: superset
+    # Note: Use global-secrets.yaml or set via --set global.credentials.postgresSupersetPassword=xxx
+  primary:
+    persistence:
+      size: 20Gi
+
+ingress:
+  enabled: true
+  className: traefik
+  annotations:
+    kubernetes.io/ingress.class: traefik
+    cert-manager.io/cluster-issuer: letsencrypt-dns
+  hosts:
+    - host: superset.theblacklodge.dev
+      paths:
+        - path: /
+          pathType: Prefix
+  tls:
+    - secretName: superset-tls
+      hosts:
+        - superset.theblacklodge.dev

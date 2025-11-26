@@ -1,0 +1,76 @@
+---
+- name: Fix PostgreSQL permissions for applications
+  hosts: k3s_servers[0]
+  become: no
+  tasks:
+    - name: Wait for PostgreSQL to be ready
+      k8s_info:
+        api_version: apps/v1
+        kind: Deployment
+        name: postgresql
+        namespace: core
+        kubeconfig: ~/.kube/config
+        wait: true
+        wait_condition:
+          type: Available
+          status: "True"
+        wait_timeout: 300
+
+    - name: Fix Grafana user permissions
+      k8s_exec:
+        namespace: core
+        pod: "{{ ansible_hostname }}"
+        command: psql -U postgres -c "ALTER USER grafana CREATEDB;"
+        kubeconfig: ~/.kube/config
+      vars:
+        ansible_hostname: "{{ (postgresql_pods.resources | first).metadata.name }}"
+      when: postgresql_pods.resources | length > 0
+      register: postgresql_pods
+      failed_when: false
+
+    - name: Grant schema permissions to Grafana
+      k8s_exec:
+        namespace: core
+        pod: "{{ (postgresql_pods.resources | first).metadata.name }}"
+        command: psql -U postgres -d grafana -c "GRANT ALL ON SCHEMA public TO grafana;"
+        kubeconfig: ~/.kube/config
+      when: postgresql_pods.resources | length > 0
+      failed_when: false
+
+    - name: Create database-storage PVC in datalake namespace
+      k8s:
+        state: present
+        definition:
+          apiVersion: v1
+          kind: PersistentVolumeClaim
+          metadata:
+            name: database-storage
+            namespace: datalake
+          spec:
+            accessModes:
+              - ReadWriteMany
+            storageClassName: nfs-infrastructure
+            resources:
+              requests:
+                storage: 50Gi
+        kubeconfig: ~/.kube/config
+
+    - name: Fix Radarr service port mapping
+      k8s:
+        state: present
+        definition:
+          apiVersion: v1
+          kind: Service
+          metadata:
+            name: radarr
+            namespace: apps
+          spec:
+            type: NodePort
+            ports:
+            - port: 7878
+              targetPort: 8989  # Radarr actually listens on 8989
+              nodePort: 30597
+              protocol: TCP
+            selector:
+              app: radarr
+        kubeconfig: ~/.kube/config

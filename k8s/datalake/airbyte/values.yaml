@@ -1,0 +1,54 @@
+# Values for airbyte
+# Configure resources, ingress, and application-specific settings
+
+webapp:
+  image:
+    repository: airbyte/webapp
+    tag: "0.50.33"
+    pullPolicy: IfNotPresent
+  resources:
+    requests:
+      memory: 256Mi
+      cpu: 100m
+    limits:
+      memory: 512Mi
+      cpu: 500m
+
+server:
+  image:
+    repository: airbyte/server
+    tag: "0.50.33"
+    pullPolicy: IfNotPresent
+  resources:
+    requests:
+      memory: 512Mi
+      cpu: 250m
+    limits:
+      memory: 1Gi
+      cpu: 500m
+
+postgresql:
+  enabled: true
+  auth:
+    postgresPassword: airbyte
+    username: airbyte
+    database: airbyte
+  primary:
+    persistence:
+      size: 20Gi
+
+ingress:
+  enabled: true
+  className: traefik
+  annotations:
+    kubernetes.io/ingress.class: traefik
+    cert-manager.io/cluster-issuer: letsencrypt-dns
+  hosts:
+    - host: airbyte.theblacklodge.dev
+      paths:
+        - path: /
+          pathType: Prefix
+  tls:
+    - secretName: airbyte-tls
+      hosts:
+        - airbyte.theblacklodge.dev

@@ -1,0 +1,16 @@
+apiVersion: v2
+name: traefik
+description: Traefik - The Cloud Native Application Proxy
+type: application
+version: 1.0.0
+appVersion: "v2.10"
+home: https://traefik.io
+sources:
+  - https://github.com/traefik/traefik
+maintainers:
+  - name: Austin Smith
+dependencies:
+  - name: traefik
+    version: 25.0.0
+    repository: https://traefik.github.io/charts
+

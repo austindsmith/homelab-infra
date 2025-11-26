@@ -1,0 +1,48 @@
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: postgresql-init
+  namespace: core
+data:
+  01-create-databases.sql: |
+    -- Create databases for all applications
+    CREATE DATABASE airbyte;
+    CREATE DATABASE mlflow;
+    CREATE DATABASE nessie;
+    CREATE DATABASE superset;
+    CREATE DATABASE grafana;
+    CREATE DATABASE authentik;
+    CREATE DATABASE n8n;
+    CREATE DATABASE nextcloud;
+    CREATE DATABASE gitea;
+    CREATE DATABASE vaultwarden;
+    
+    -- Create users for each application
+    CREATE USER airbyte WITH PASSWORD 'airbyte123';
+    CREATE USER mlflow WITH PASSWORD 'mlflow123';
+    CREATE USER nessie WITH PASSWORD 'nessie123';
+    CREATE USER superset WITH PASSWORD 'superset123';
+    CREATE USER grafana WITH PASSWORD 'grafana123';
+    CREATE USER authentik WITH PASSWORD 'authentik123';
+    CREATE USER n8n WITH PASSWORD 'n8n123';
+    CREATE USER nextcloud WITH PASSWORD 'nextcloud123';
+    CREATE USER gitea WITH PASSWORD 'gitea123';
+    CREATE USER vaultwarden WITH PASSWORD 'vaultwarden123';
+    
+    -- Grant privileges
+    GRANT ALL PRIVILEGES ON DATABASE airbyte TO airbyte;
+    GRANT ALL PRIVILEGES ON DATABASE mlflow TO mlflow;
+    GRANT ALL PRIVILEGES ON DATABASE nessie TO nessie;
+    GRANT ALL PRIVILEGES ON DATABASE superset TO superset;
+    GRANT ALL PRIVILEGES ON DATABASE grafana TO grafana;
+    GRANT ALL PRIVILEGES ON DATABASE authentik TO authentik;
+    GRANT ALL PRIVILEGES ON DATABASE n8n TO n8n;
+    GRANT ALL PRIVILEGES ON DATABASE nextcloud TO nextcloud;
+    GRANT ALL PRIVILEGES ON DATABASE gitea TO gitea;
+    GRANT ALL PRIVILEGES ON DATABASE vaultwarden TO vaultwarden;
+    
+    -- Grant schema creation privileges for Grafana
+    ALTER USER grafana CREATEDB;
+    \c grafana
+    GRANT ALL ON SCHEMA public TO grafana;

@@ -1,0 +1,123 @@
+version: "3.9"
+
+networks:
+  proxy:
+    external: true
+  games:
+
+services:
+  # --- AI front-ends (uses your OpenAI key) ---
+  lobechat:
+    image: lobehub/lobe-chat
+    container_name: lobechat
+    networks: [proxy]
+    environment:
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.lobe.rule=Host(`ai.${DOMAIN}`)
+      - traefik.http.routers.lobe.entrypoints=websecure
+      - traefik.http.routers.lobe.tls.certresolver=letsencrypt
+      - traefik.http.services.lobe.loadbalancer.server.port=3210
+    restart: unless-stopped
+
+  openwebui:
+    image: ghcr.io/open-webui/open-webui
+    container_name: openwebui
+    networks: [proxy]
+    environment:
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.openwebui.rule=Host(`chat.${DOMAIN}`)
+      - traefik.http.routers.openwebui.entrypoints=websecure
+      - traefik.http.routers.openwebui.tls.certresolver=letsencrypt
+      - traefik.http.services.openwebui.loadbalancer.server.port=8080
+    restart: unless-stopped
+
+  code-server:
+    image: lscr.io/linuxserver/code-server
+    container_name: code-server
+    networks: [proxy]
+    volumes:
+      - /mnt/media/Configs/codeserver:/config
+      - /home/youruser/projects:/config/workspace
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.code.rule=Host(`ide.${DOMAIN}`)
+      - traefik.http.routers.code.entrypoints=websecure
+      - traefik.http.routers.code.tls.certresolver=letsencrypt
+      - traefik.http.services.code.loadbalancer.server.port=8443
+      - traefik.http.services.code.loadbalancer.server.scheme=https
+      - traefik.http.services.code.loadbalancer.serversTransport=code-https@file
+    restart: unless-stopped
+
+
+  # --- Low-latency LAN game / emulator streaming ---
+  sunshine:
+    image: ghcr.io/lizardbyte/sunshine
+    container_name: sunshine
+    network_mode: host          # Moonlight requires host UDP ports
+    devices:
+      - /dev/dri
+    volumes:
+      - /mnt/media/Configs/sunshine:/config
+    restart: unless-stopped
+    labels:
+      - traefik.enable=false
+
+  steamos:
+    image: lscr.io/linuxserver/steamos
+    container_name: steamos
+    networks: [games]
+    devices:
+      - /dev/dri
+    shm_size: "8gb"
+    volumes:
+      - /mnt/media/Configs/steamos:/config
+    restart: unless-stopped
+    labels:
+      - traefik.enable=false
+
+  # --- Dedicated game servers ---
+  minecraft:
+    image: itzg/minecraft-server
+    container_name: minecraft
+    networks: [games]
+    environment:
+      - EULA=TRUE
+    volumes:
+      - /mnt/media/Games/minecraft:/data
+    ports:
+      - "25565:25565"
+    restart: unless-stopped
+    labels:
+      - traefik.enable=false
+
+  valheim:
+    image: lloesche/valheim-server
+    container_name: valheim
+    networks: [games]
+    environment:
+      - SERVER_NAME=BlackLodge
+    volumes:
+      - /mnt/media/Games/valheim:/config
+    ports:
+      - "2456-2458:2456-2458/udp"
+    restart: unless-stopped
+    labels:
+      - traefik.enable=false
+
+  factorio:
+    image: factoriotools/factorio
+    container_name: factorio
+    networks: [games]
+    volumes:
+      - /mnt/media/Games/factorio:/factorio
+    environment:
+      - UPDATE_MODS_ON_START=true
+    ports:
+      - "34197:34197/udp"
+    restart: unless-stopped
+    labels:
+      - traefik.enable=false

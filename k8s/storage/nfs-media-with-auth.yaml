@@ -1,0 +1,83 @@
+---
+# Secret for NFS authentication
+apiVersion: v1
+kind: Secret
+metadata:
+  name: nfs-credentials
+  namespace: apps
+type: Opaque
+stringData:
+  username: k8s
+  password: Crawling8-Impending9-Stiffness2-Unsold0-Passing7
+---
+# Updated media storage class with authentication
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: nfs-media-auth
+provisioner: nfs.csi.k8s.io
+parameters:
+  server: 192.168.1.131
+  share: /volume1/media
+  # Add authentication parameters
+  csi.storage.k8s.io/node-stage-secret-name: nfs-credentials
+  csi.storage.k8s.io/node-stage-secret-namespace: apps
+reclaimPolicy: Retain
+volumeBindingMode: Immediate
+allowVolumeExpansion: true
+---
+# TV Shows storage with auth
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: media-tv
+  namespace: apps
+spec:
+  accessModes:
+    - ReadWriteMany
+  storageClassName: nfs-media-auth
+  resources:
+    requests:
+      storage: 1Ti
+---
+# Movies storage with auth
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: media-movies
+  namespace: apps
+spec:
+  accessModes:
+    - ReadWriteMany
+  storageClassName: nfs-media-auth
+  resources:
+    requests:
+      storage: 1Ti
+---
+# Music storage with auth
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: media-music
+  namespace: apps
+spec:
+  accessModes:
+    - ReadWriteMany
+  storageClassName: nfs-media-auth
+  resources:
+    requests:
+      storage: 500Gi
+---
+# Downloads storage with auth
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: media-downloads
+  namespace: apps
+spec:
+  accessModes:
+    - ReadWriteMany
+  storageClassName: nfs-media-auth
+  resources:
+    requests:
+      storage: 500Gi

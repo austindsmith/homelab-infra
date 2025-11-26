@@ -1,0 +1,6 @@
+# example service to be auto-updated
+services:
+  grafana:
+    image: grafana/grafana:latest
+    labels:
+      com.centurylinklabs.watchtower.enable: "true"

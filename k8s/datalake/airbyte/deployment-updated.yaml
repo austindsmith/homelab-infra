@@ -1,0 +1,98 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: airbyte-webapp
+  namespace: datalake
+  labels:
+    app: airbyte-webapp
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: airbyte-webapp
+  template:
+    metadata:
+      labels:
+        app: airbyte-webapp
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "80"
+    spec:
+      containers:
+      - name: airbyte-webapp
+        image: airbyte/webapp:0.50.33
+        ports:
+        - containerPort: 80
+        env:
+        - name: AIRBYTE_VERSION
+          value: "0.50.33"
+        - name: API_URL
+          value: "/api/v1/"
+        - name: INTERNAL_API_HOST
+          value: "airbyte-server:8001"
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "250m"
+          limits:
+            memory: "512Mi"
+            cpu: "500m"
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: airbyte-server
+  namespace: datalake
+  labels:
+    app: airbyte-server
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: airbyte-server
+  template:
+    metadata:
+      labels:
+        app: airbyte-server
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "8001"
+    spec:
+      containers:
+      - name: airbyte-server
+        image: airbyte/server:0.50.33
+        ports:
+        - containerPort: 8001
+        env:
+        - name: AIRBYTE_VERSION
+          value: "0.50.33"
+        - name: DATABASE_HOST
+          value: "postgresql.core.svc.cluster.local"
+        - name: DATABASE_PORT
+          value: "5432"
+        - name: DATABASE_PASSWORD
+          value: "airbyte123"
+        - name: DATABASE_USER
+          value: "airbyte"
+        - name: DATABASE_DB
+          value: "airbyte"
+        - name: WORKSPACE_ROOT
+          value: "/tmp/workspace"
+        - name: WORKSPACE_DOCKER_MOUNT
+          value: "airbyte_workspace"
+        - name: LOCAL_ROOT
+          value: "/tmp/airbyte_local"
+        - name: LOCAL_DOCKER_MOUNT
+          value: "/tmp/airbyte_local"
+        - name: CONFIG_ROOT
+          value: "/data"
+        - name: TRACKING_STRATEGY
+          value: "logging"
+        resources:
+          requests:
+            memory: "512Mi"
+            cpu: "250m"
+          limits:
+            memory: "1Gi"
+            cpu: "500m"

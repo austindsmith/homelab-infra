@@ -1,0 +1,81 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "airbyte.fullname" . }}-webapp
+  labels:
+    {{- include "airbyte.labels" . | nindent 4 }}
+    component: webapp
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      {{- include "airbyte.selectorLabels" . | nindent 6 }}
+      component: webapp
+  template:
+    metadata:
+      labels:
+        {{- include "airbyte.selectorLabels" . | nindent 8 }}
+        component: webapp
+    spec:
+      containers:
+        - name: airbyte-webapp
+          image: "{{ .Values.webapp.image.repository }}:{{ .Values.webapp.image.tag }}"
+          imagePullPolicy: {{ .Values.webapp.image.pullPolicy }}
+          ports:
+            - name: http
+              containerPort: 80
+              protocol: TCP
+          env:
+            - name: AIRBYTE_VERSION
+              value: {{ .Values.webapp.image.tag | quote }}
+            - name: API_URL
+              value: "/api/v1/"
+          resources:
+            {{- toYaml .Values.webapp.resources | nindent 12 }}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "airbyte.fullname" . }}-server
+  labels:
+    {{- include "airbyte.labels" . | nindent 4 }}
+    component: server
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      {{- include "airbyte.selectorLabels" . | nindent 6 }}
+      component: server
+  template:
+    metadata:
+      labels:
+        {{- include "airbyte.selectorLabels" . | nindent 8 }}
+        component: server
+    spec:
+      containers:
+        - name: airbyte-server
+          image: "{{ .Values.server.image.repository }}:{{ .Values.server.image.tag }}"
+          imagePullPolicy: {{ .Values.server.image.pullPolicy }}
+          ports:
+            - name: http
+              containerPort: 8001
+              protocol: TCP
+          env:
+            - name: AIRBYTE_VERSION
+              value: {{ .Values.server.image.tag | quote }}
+            - name: CONFIG_ROOT
+              value: /configs
+            - name: DATABASE_PASSWORD
+              value: {{ .Values.postgresql.auth.postgresPassword | quote }}
+            - name: DATABASE_URL
+              value: "jdbc:postgresql://{{ include "airbyte.fullname" . }}-postgresql:5432/{{ .Values.postgresql.auth.database }}"
+            - name: DATABASE_USER
+              value: {{ .Values.postgresql.auth.username | quote }}
+          resources:
+            {{- toYaml .Values.server.resources | nindent 12 }}
+          volumeMounts:
+            - name: airbyte-config
+              mountPath: /configs
+      volumes:
+        - name: airbyte-config
+          emptyDir: {}

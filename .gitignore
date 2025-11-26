@@ -1,29 +1,106 @@
-# Terraform
-.terraform/
-*.tfstate
-*.tfstate.*
-crash.log
-crash.*.log
-override.tf
-override.tf.json
-*_override.tf
-*_override.tf.json
-
-# Secrets & tfvars
-*secrets*
-*.tfvars
-!terraform.example.tfvars
-
-# Ansible
-*.retry
-*.logs
-ansible/.artifacts
-
-# Editor/OS
-.vscode/
+############################
+# OS / Editor junk
+############################
 .DS_Store
+Thumbs.db
+*~
+*.swp
+*.swo
 
-# Python
+.vscode/
+.idea/
+
+############################
+# Python / Virtualenv
+############################
 .venv/
 __pycache__/
-galaxy.lock
+
+############################
+# Ansible
+############################
+ansible/.artifacts/
+ansible/.logs/
+
+############################
+# Terraform
+############################
+.terraform/
+terraform/.terraform/
+terraform/.terraform.lock.hcl
+
+*.tfstate
+*.tfstate.*
+
+*.tfplan
+*.tfplan.*
+
+terraform/*.tfvars
+terraform/archive/terraform.tfvars
+!terraform/*.tfvars.example
+*.tfvars
+*.lock.hcl
+############################
+# Packer
+############################
+packer/packer_cache/
+*.box
+
+packer/sensitive-variables.pkr.hcl
+
+############################
+# Docker / Env files
+############################
+.env
+.env.*
+*.env
+
+**/.env
+**/.env.*
+**/*.env
+
+!.env.example
+!*.env.example
+
+############################
+# n8n credentials (Google API, etc.)
+############################
+# Ignore the entire credentials folder for n8n
+docker/apps/n8n/Credentials/
+
+############################
+# Generic secrets / credentials
+############################
+**/secrets/
+**/credentials/
+
+**/*secret.*
+**/*secrets.*
+**/*password.*
+**/*token.*
+**/*credential.*
+**/*cert.*
+
+*.pem
+*.key
+*.crt
+
+############################
+# Kubernetes secrets
+############################
+k8s/global-secrets.yaml
+!k8s/global-secrets.yaml.template
+
+############################
+# Logs / temp files
+############################
+*.log
+logs/
+tmp/
+temp/
+*.tmp
+
+############################
+# Local helper files
+############################
+infra-tree.txt
