@@ -1,7 +1,0 @@
-apiVersion: v2
-name: airbyte
-description: airbyte for data lakehouse
-type: application
-version: 1.0.0
-maintainers:
-  - name: Austin Smith
