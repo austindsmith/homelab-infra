@@ -1,0 +1,32 @@
+http:
+
+  routers:
+    next-router:
+      rule: "Host(`pangolin.theblacklodge.org`) && !PathPrefix(`/api/v1`)"
+      service: next-service
+      entryPoints:
+        - web
+
+    api-router:
+      rule: "Host(`pangolin.theblacklodge.org`) && PathPrefix(`/api/v1`)"
+      service: api-service
+      entryPoints:
+        - web
+
+    # WebSocket router
+    ws-router:
+      rule: "Host(`pangolin.theblacklodge.org`)"
+      service: api-service
+      entryPoints:
+        - web
+
+  services:
+    next-service:
+      loadBalancer:
+        servers:
+          - url: "http://127.0.0.1:3002"
+
+    api-service:
+      loadBalancer:
+        servers:
+          - url: "http://127.0.0.1:3000"

@@ -1,0 +1,35 @@
+api:
+  insecure: true
+  dashboard: true
+
+providers:
+  http:
+    endpoint: "http://127.0.0.1:3001/api/v1/traefik-config"
+    pollInterval: "5s"
+  file:
+    filename: "/opt/pangolin/config/traefik/dynamic_config.yml"
+
+experimental:
+  plugins:
+    badger:
+      moduleName: "github.com/fosrl/badger"
+      version: "v1.2.0"
+
+log:
+  level: "INFO"
+  format: "common"
+
+entryPoints:
+  web:
+    address: ":80"
+  websecure:
+    address: ":443"
+    transport:
+      respondingTimeouts:
+        readTimeout: "30m"
+
+serversTransport:
+  insecureSkipVerify: true
+
+ping:
+    entryPoint: "web"

@@ -49,6 +49,8 @@ https://www.virtualizationhowto.com/2022/06/kubernetes-install-metallb-loadbalan
 
 https://kubernetes.github.io/ingress-nginx/deploy/
 
+## Installing Traefik
+
 ## Note
 
 I have found AI to be great and horrible. I started with it to build a Terraform/Ansible/k8s stack. This was super helpful because I was able to make headway quickly and understand the larger concepts at play faster because I was not buried in the weeds trying to understand each individual line.

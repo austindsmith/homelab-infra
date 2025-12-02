@@ -1,0 +1,22 @@
+app:
+  dashboard_url: "https://pangolin.theblacklodge.org"
+
+domains:
+  domain1:
+    base_domain: "pangolin.theblacklodge.org"
+    cert_resolver: "letsencrypt"
+
+server:
+  secret: ${PANGOLIN_SECRET}
+  external_port: 3000
+  internal_port: 3001
+  next_port: 3002
+  internal_hostname: "pangolin"    # or your container name
+
+gerbil:
+  base_endpoint: "https://pangolin.theblacklodge.org"
+
+flags:
+  require_email_verification: false
+  disable_signup_without_invite: true
+  disable_user_create_org: true

@@ -1,22 +1,15 @@
-service:
-  type: LoadBalancer
-  spec:
-    # Optional: pick a fixed IP from your MetalLB pool
-    loadBalancerIP: 192.168.50.60  # must be inside 192.168.50.50-192.168.50.75
-
-# Keep the default Kubernetes Ingress provider
-providers:
-  kubernetesIngress:
-    enabled: true
-  # Turn OFF Gateway API for now unless you specifically want to use it
-  kubernetesGateway:
-    enabled: false
-
-# Dashboard via Traefik IngressRoute
+# values.yaml
 ingressRoute:
   dashboard:
     enabled: true
-    # Better to restrict to a specific host
-    matchRule: HostRegexp(`{host:.+}`)
+    matchRule: Host(`dashboard.local`)
     entryPoints:
       - web
+providers:
+  kubernetesGateway:
+    enabled: true
+gateway:
+  listeners:
+    web:
+      namespacePolicy:
+        from: All
