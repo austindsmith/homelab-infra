@@ -35,7 +35,7 @@ Once the cluster is deployed and connected to, switch to k8s for further deploym
 - [ ] Rework Terraform with newer provider versions
 - [ ] Rework metallb with newer version
 - [ ] Improve citations (proper format, include WayBackMachine archives)
-
+- [ ] Migrate domains to thewhitelodge.org now that FreeIPA is up internally
 
 ## References
 
