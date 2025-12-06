@@ -1,0 +1,54 @@
+---
+- name: Join Kubernetes nodes to FreeIPA
+  hosts: k8s_nodes
+  become: true
+  vars:
+    ipa_realm: "{{ ipa_realm | default('THEBLACKLODGE.ORG') }}"
+    ipa_domain: "{{ ipa_domain | default('theblacklodge.org') }}"
+    ipa_server: "{{ ipa_server | default('ipa.theblacklodge.org') }}"
+    ipa_join_user: "{{ ipa_join_user | default('host-join@THEBLACKLODGE.ORG') }}"
+    ipa_join_password: "{{ ipa_join_password }}"
+  tasks:
+    - name: Ensure freeipa client packages are installed (Debian/Ubuntu)
+      apt:
+        name: freeipa-client
+        state: present
+        update_cache: yes
+      when: ansible_os_family == "Debian"
+
+    - name: Ensure freeipa client packages are installed (RedHat)
+      yum:
+        name: freeipa-client
+        state: present
+      when: ansible_os_family == "RedHat"
+
+    - name: Check if already enrolled
+      stat:
+        path: /etc/ipa/default.conf
+      register: ipa_conf
+
+    - name: Enroll in FreeIPA
+      command: >
+        ipa-client-install
+        --domain {{ ipa_domain }}
+        --server {{ ipa_server }}
+        --realm {{ ipa_realm }}
+        --mkhomedir
+        --enable-dns-updates
+        --principal {{ ipa_join_user }}
+        --password {{ ipa_join_password }}
+        --unattended
+      when: not ipa_conf.stat.exists
+
+    - name: Enable SSSD home-directory creation (PAM module)
+      lineinfile:
+        path: /etc/pam.d/common-session
+        line: "session required pam_mkhomedir.so skel=/etc/skel/ umask=0022"
+        insertafter: EOF
+      when: ansible_os_family == "Debian"
+
+    - name: Restart sssd
+      service:
+        name: sssd
+        state: restarted
+      when: ipa_conf.stat.exists or (not ipa_conf.stat.exists)
