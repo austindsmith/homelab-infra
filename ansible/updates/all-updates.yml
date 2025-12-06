@@ -1,13 +1,10 @@
----
-- name: Update Debian/Ubuntu hosts
-  hosts: apt_hosts          # NEW: only the apt-capable hosts
-  become: true              # NEW: force sudo at play level
-  become_method: sudo
-  gather_facts: true
+- hosts: all
+  vars:
+    ansible_host_key_checking: false
+  become: true
 
   tasks:
     - name: Update and upgrade apt packages
-      ansible.builtin.apt:
+      apt:
         update_cache: yes
-        upgrade: dist
-        autoremove: yes
+        upgrade: yes
