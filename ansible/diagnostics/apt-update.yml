@@ -1,0 +1,81 @@
+---
+- name: Diagnose Ansible sudo/apt behaviour
+  hosts: all          # or apt_hosts if you want to limit it
+  gather_facts: yes
+
+  tasks:
+    - name: Show basic connection / become variables
+      ansible.builtin.debug:
+        msg:
+          inventory_hostname: "{{ inventory_hostname }}"
+          ansible_user: "{{ ansible_user | default('undefined') }}"
+          ansible_ssh_user: "{{ ansible_ssh_user | default('undefined') }}"
+          ansible_become: "{{ ansible_become | default('undefined') }}"
+          ansible_become_method: "{{ ansible_become_method | default('undefined') }}"
+          ansible_remote_tmp: "{{ ansible_remote_tmp | default('undefined') }}"
+          os_family: "{{ ansible_facts.os_family | default('unknown') }}"
+          distro: "{{ ansible_facts.distribution | default('unknown') }} {{ ansible_facts.distribution_version | default('') }}"
+          python_executable: "{{ ansible_facts.python.executable | default('unknown') }}"
+
+    - name: id WITHOUT become
+      ansible.builtin.command: id
+      register: id_no_become
+      changed_when: false
+
+    - name: Show id WITHOUT become
+      ansible.builtin.debug:
+        var: id_no_become.stdout
+
+    - name: id WITH become
+      become: true
+      become_method: sudo
+      ansible.builtin.command: id
+      register: id_with_become
+      changed_when: false
+      ignore_errors: true
+
+    - name: Show id WITH become
+      ansible.builtin.debug:
+        msg:
+          id_with_become_stdout: "{{ id_with_become.stdout | default('') }}"
+          id_with_become_rc: "{{ id_with_become.rc | default('no_rc') }}"
+          id_with_become_stderr: "{{ id_with_become.stderr | default('') }}"
+
+    - name: Test sudo -n true
+      ansible.builtin.command: sudo -n true
+      register: sudo_n_true
+      changed_when: false
+      ignore_errors: true
+
+    - name: Show sudo -n true result
+      ansible.builtin.debug:
+        msg:
+          sudo_n_true_rc: "{{ sudo_n_true.rc | default('no_rc') }}"
+          sudo_n_true_stderr: "{{ sudo_n_true.stderr | default('') }}"
+
+    - name: Show sudo -n -l (what this user is allowed to do)
+      ansible.builtin.command: sudo -n -l
+      register: sudo_l
+      changed_when: false
+      ignore_errors: true
+
+    - name: Show sudo -n -l output (first few lines)
+      ansible.builtin.debug:
+        msg: "{{ sudo_l.stdout.split('\n')[0:10] | join('\n') }}"
+      when: sudo_l.stdout is defined
+
+    - name: Test apt as root (simulate update, no changes)
+      become: true
+      become_method: sudo
+      ansible.builtin.command: apt-get -s update
+      register: apt_test
+      changed_when: false
+      ignore_errors: true
+      when: ansible_facts.os_family == "Debian"
+
+    - name: Show apt test result
+      ansible.builtin.debug:
+        msg:
+          apt_test_rc: "{{ apt_test.rc | default('no_rc') }}"
+          apt_test_stderr: "{{ apt_test.stderr | default('') }}"
+      when: ansible_facts.os_family == "Debian"
