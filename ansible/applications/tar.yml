@@ -1,0 +1,12 @@
+- hosts: rocky_vms
+  vars:
+    ansible_host_key_checking: false
+  become: true
+  become_method: sudo
+  become_user: root
+
+  tasks:
+    - name: Install tar
+      ansible.builtin.dnf:
+        name: "tar"
+        state: latest
