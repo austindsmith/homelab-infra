@@ -1,0 +1,11 @@
+- hosts: all
+  vars:
+    ansible_host_key_checking: false
+  become: true
+  become_method: sudo
+
+  tasks:
+    - name: Update and upgrade apt packages
+      dnf:
+        update_cache: yes
+        upgrade: yes

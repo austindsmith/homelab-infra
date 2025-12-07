@@ -79,4 +79,3 @@
           apt_test_rc: "{{ apt_test.rc | default('no_rc') }}"
           apt_test_stderr: "{{ apt_test.stderr | default('') }}"
       when: ansible_facts.os_family == "Debian"
-gi
