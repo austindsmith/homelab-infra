@@ -3,9 +3,12 @@
     ansible_host_key_checking: false
   become: true
   become_method: sudo
+  become_user: root
 
   tasks:
     - name: Update and upgrade apt packages
       dnf:
         update_cache: yes
         upgrade: yes
+
+        become: true
