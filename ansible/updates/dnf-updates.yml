@@ -7,8 +7,7 @@
 
   tasks:
     - name: Update and upgrade apt packages
-      dnf:
-        update_cache: yes
-        upgrade: yes
-
+      ansible.builtin.dnf:
+        name: "*"
+        state: latest
         become: true
