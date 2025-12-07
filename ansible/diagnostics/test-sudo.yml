@@ -1,0 +1,46 @@
+# test-sudo.yml
+---
+- name: Test sudo on IPA and Docker
+  hosts:
+    - ipa.theblacklodge.org
+    - docker.theblacklodge.org
+  gather_facts: false
+
+  vars:
+    test_cmd: "id"
+
+  tasks:
+    - name: Show user without sudo
+      ansible.builtin.command: whoami
+      register: whoami_no_sudo
+      changed_when: false
+
+    - name: Debug user without sudo
+      ansible.builtin.debug:
+        msg: "Without sudo, user is: {{ whoami_no_sudo.stdout }}"
+
+    - name: Run {{ test_cmd }} with become (sudo)
+      become: true
+      become_method: sudo
+      become_user: root
+      ansible.builtin.command: "{{ test_cmd }}"
+      register: sudo_test
+      changed_when: false
+
+    - name: Debug sudo result
+      ansible.builtin.debug:
+        msg: "With sudo, '{{ test_cmd }}' output: {{ sudo_test.stdout }} (rc={{ sudo_test.rc }})"
+
+    - name: Try sudo -n {{ test_cmd }} directly (no become)
+      become: false
+      ansible.builtin.command: "sudo -n {{ test_cmd }}"
+      register: sudo_n_test
+      ignore_errors: true
+      changed_when: false
+
+    - name: Debug sudo -n result
+      ansible.builtin.debug:
+        msg: >
+          sudo -n {{ test_cmd }} rc={{ sudo_n_test.rc | default('N/A') }}
+          stdout='{{ sudo_n_test.stdout | default('') }}'
+          stderr='{{ sudo_n_test.stderr | default('') }}'
