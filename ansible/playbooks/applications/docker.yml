@@ -16,3 +16,6 @@
     docker_apt_release_channel: stable
     docker_apt_gpg_key: "{{ docker_repo_url }}/{{ ansible_facts.distribution | lower }}/gpg"
     docker_apt_filename: "docker"
+    docker_users:
+      - asmith
+      - austin

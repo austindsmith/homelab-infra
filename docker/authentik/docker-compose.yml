@@ -1,0 +1,47 @@
+services:
+  server:
+    container_name: authentik-server
+    command: server
+    environment:
+      AUTHENTIK_POSTGRESQL__HOST: postgresql
+      AUTHENTIK_POSTGRESQL__NAME: ${AUTHENTIK_DB}
+      AUTHENTIK_POSTGRESQL__PASSWORD: ${AUTHENTIK_PASS}
+      AUTHENTIK_POSTGRESQL__USER: ${AUTHENTIK_USER}
+      AUTHENTIK_SECRET_KEY: ${AUTHENTIK_SECRET_KEY}
+    image: ${AUTHENTIK_IMAGE:-ghcr.io/goauthentik/server}:${AUTHENTIK_TAG:-2025.10.2}
+    ports:
+      - ${AUTHENTIK_COMPOSE_PORT_HTTP:-9000}:9000
+      - ${AUTHENTIK_COMPOSE_PORT_HTTPS:-9443}:9443
+    networks:
+      - postgres
+    restart: unless-stopped
+    volumes:
+    - ${AUTHENTIK_ROOT}/media:/media
+    - ${AUTHENTIK_ROOT}/templates/templates
+  worker:
+    container_name: authentik-worker
+    command: worker
+    environment:
+      AUTHENTIK_POSTGRESQL__HOST: postgresql
+      AUTHENTIK_POSTGRESQL__NAME: ${AUTHENTIK_DB:-authentik}
+      AUTHENTIK_POSTGRESQL__PASSWORD: ${AUTHENTIK_PASS}
+      AUTHENTIK_POSTGRESQL__USER: ${AUTHENTIK_USER:-authentik}
+      AUTHENTIK_SECRET_KEY: ${AUTHENTIK_SECRET_KEY:?secret key required}
+    image: ${AUTHENTIK_IMAGE:-ghcr.io/goauthentik/server}:${AUTHENTIK_TAG:-2025.10.2}
+    networks:
+      - postgres
+    restart: unless-stopped
+    user: root
+    volumes:
+    - /var/run/docker.sock:/var/run/docker.sock
+    - ${AUTHENTIK_ROOT}/media:/media
+    - ${AUTHENTIK_ROOT}/certs:/certs
+    - ${AUTHENTIK_ROOT}/templates:/templates
+volumes:
+  database:
+    driver: local
+
+networks:
+  postgres:
+    external: true
+    name: postgresql_postgres

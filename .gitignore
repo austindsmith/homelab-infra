@@ -21,6 +21,7 @@ __pycache__/
 ############################
 ansible/.artifacts/
 ansible/.logs/
+*.ansible_vault_pass
 
 ############################
 # Terraform
