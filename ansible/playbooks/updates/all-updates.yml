@@ -1,0 +1,22 @@
+- hosts: all
+  vars:
+    ansible_host_key_checking: false
+  become: true
+  become_method: sudo
+
+  tasks:
+    - name: Update and upgrade apt packages
+      apt:
+        update_cache: yes
+        upgrade: yes
+      when: ansible_facts['distribution'] in ['Ubuntu', 'Debian']
+      
+    - name: Update and upgrade dnf packages
+      ansible.builtin.dnf:
+        name: "*"
+        state: latest
+      when: ansible_facts['distribution'] == 'Rocky'
+      
+
+
+# Add Archlinux updater. For right now, fine to do manually.
