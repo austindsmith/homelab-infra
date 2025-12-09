@@ -10,7 +10,7 @@ server:
   secret: "your-strong-secret"
 
 gerbil:
-  base_endpoint: "pangolin.thewhitelodge.org"
+  base_endpoint: "152.53.52.163"
 
 flags:
   require_email_verification: false

@@ -1,0 +1,55 @@
+---
+- name: Download repo key
+  register: syncthing_key_download
+  ansible.builtin.get_url:
+    url: https://syncthing.net/release-key.gpg
+    dest: "{{ syncthing_keyring }}.asc"
+    mode: u=rw,g=r,o=r
+    force: true
+  tags:
+    - syncthing
+
+- name: Check repo key
+  register: syncthing_key_status
+  ansible.builtin.stat:
+    path: "{{ syncthing_keyring }}"
+  tags:
+    - syncthing
+
+- name: Dearmor repo key
+  when:
+    - syncthing_key_download.changed or not syncthing_key_status.stat.exists
+  register: syncthing_key_convert
+  changed_when: syncthing_key_convert.rc == 0
+  ansible.builtin.command:
+    cmd: "gpg --dearmor -o {{ syncthing_keyring }} {{ syncthing_keyring }}.asc"
+  tags:
+    - syncthing
+
+- name: Add apt repository
+  ansible.builtin.apt_repository:
+    repo: "deb [arch={{ syncthing_arch }} signed-by={{ syncthing_keyring }}] https://apt.syncthing.net/ syncthing stable"
+    filename: syncthing
+    update_cache: true
+    state: present
+  tags:
+    - syncthing
+
+- name: Install required packages
+  loop:
+    - syncthing
+  ansible.builtin.package:
+    name: "{{ item }}"
+    state: present
+  tags:
+    - syncthing
+
+- name: Process user config
+  loop: "{{ syncthing_general_users + syncthing_extra_users }}"
+  loop_control:
+    label: "{{ item.username }}"
+  ansible.builtin.include_tasks: config.yml
+  tags:
+    - syncthing
+
+...

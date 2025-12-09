@@ -58,7 +58,6 @@ x-shared:
       - zammad-storage:/opt/zammad/storage
     depends_on:
       - zammad-memcached
-      - zammad-postgresql
       - zammad-redis
 
 services:
@@ -83,8 +82,6 @@ services:
   zammad-init:
     <<: *zammad-service
     command: ["zammad-init"]
-    depends_on:
-      - zammad-postgresql
     restart: on-failure
     user: 0:0
 
@@ -103,16 +100,6 @@ services:
     depends_on:
       - zammad-railsserver
 
-  zammad-postgresql:
-    environment:
-      POSTGRES_DB: ${POSTGRES_DB:-zammad_production}
-      POSTGRES_USER: ${POSTGRES_USER:-zammad}
-      POSTGRES_PASSWORD: ${POSTGRES_PASS:-zammad}
-    image: postgres:${POSTGRES_VERSION:-17.7-alpine}
-    restart: ${RESTART:-always}
-    volumes:
-      - postgresql-data:/var/lib/postgresql/data
-
   zammad-railsserver:
     <<: *zammad-service
     command: ["zammad-railsserver"]
@@ -121,7 +108,7 @@ services:
     image: redis:${REDIS_VERSION:-7.4.7-alpine}
     restart: ${RESTART:-always}
     volumes:
-      - redis-data:/data
+      - ${ZAMMAD_ROOT}:/data
 
   zammad-scheduler:
     <<: *zammad-service

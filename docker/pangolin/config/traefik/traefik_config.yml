@@ -22,8 +22,8 @@ log:
 certificatesResolvers:
   letsencrypt:
     acme:
-      httpChallenge:
-        entryPoint: web
+      dnsChallenge:
+        provider: "cloudflare"
       email: austindsmith_accounts@proton.me # REPLACE WITH YOUR EMAIL
       storage: "/letsencrypt/acme.json"
       caServer: "https://acme-v02.api.letsencrypt.org/directory"

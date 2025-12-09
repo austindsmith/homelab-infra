@@ -1,0 +1,18 @@
+- name: Install and configure Syncthing on docker hosts
+  hosts: docker_hosts
+  become: true
+
+  vars:
+    # General users Syncthing should manage
+    syncthing_general_users:
+      - username: syncthing
+        home: /var/lib/syncthing 
+        config:
+          gui:
+            address: "0.0.0.0:8384" 
+          device:
+            "@introducer": false
+            autoAcceptFolders: true
+
+  roles:
+    - rolehippie.syncthing

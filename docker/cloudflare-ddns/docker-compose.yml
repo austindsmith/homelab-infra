@@ -22,6 +22,6 @@ services:
     # Another protection to restrict superuser privileges (optional but recommended)
     environment:
       - CLOUDFLARE_API_TOKEN=${CLOUDFLARE_API_TOKEN}
-      - DOMAINS=thewhitelodge.org
+      - DOMAINS=*.thewhitelodge.org
 
       - PROXIED=true

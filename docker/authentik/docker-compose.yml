@@ -1,3 +1,4 @@
+# In the shell in Portainer, run ak changepassword akadmin to change the initial password to get logged in.
 services:
   server:
     container_name: authentik-server
@@ -27,6 +28,7 @@ services:
       AUTHENTIK_POSTGRESQL__PASSWORD: ${AUTHENTIK_PASS}
       AUTHENTIK_POSTGRESQL__USER: ${AUTHENTIK_USER:-authentik}
       AUTHENTIK_SECRET_KEY: ${AUTHENTIK_SECRET_KEY:?secret key required}
+      AUTHENTIK_BOOTSTRAP_PASSWORD: ${AUTHENTIK_BOOTSTRAP_PASSWORD}
     image: ${AUTHENTIK_IMAGE:-ghcr.io/goauthentik/server}:${AUTHENTIK_TAG:-2025.10.2}
     networks:
       - postgres

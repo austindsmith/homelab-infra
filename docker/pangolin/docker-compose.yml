@@ -1,10 +1,12 @@
+#Note that this must first be copied to /srv on the host. Find a better way to handle this via gitops.
+
 services:
   pangolin:
     image: fosrl/pangolin:latest # https://github.com/fosrl/pangolin/releases
     container_name: pangolin
     restart: unless-stopped
     volumes:
-      - ./config:/app/config
+      - ${PANGOLIN_ROOT}:/app/config
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:3001/api/v1/"]
       interval: "3s"
@@ -23,7 +25,7 @@ services:
       - --generateAndSaveKeyTo=/var/config/key
       - --remoteConfig=http://pangolin:3001/api/v1/
     volumes:
-      - ./config/:/var/config
+      - ${PANGOLIN_ROOT}/:/var/config
     cap_add:
       - NET_ADMIN
       - SYS_MODULE
@@ -43,10 +45,13 @@ services:
         condition: service_healthy
     command:
       - --configFile=/etc/traefik/traefik_config.yml
+    environment:
+      - CF_API_EMAIL=${CLOUDFLARE_API_EMAIL}
+      - CF_DNS_API_TOKEN=${CLOUDFLARE_API_TOKEN}
     volumes:
-      - ./config/traefik:/etc/traefik:ro # Volume to store the Traefik configuration
-      - ./config/letsencrypt:/letsencrypt # Volume to store the Let's Encrypt certificates
-      - ./config/traefik/logs:/var/log/traefik # Volume to store Traefik logs
+      - ${PANGOLIN_ROOT}/traefik:/etc/traefik:ro # Volume to store the Traefik configuration
+      - ${PANGOLIN_ROOT}/letsencrypt:/letsencrypt # Volume to store the Let's Encrypt certificates
+      - ${PANGOLIN_ROOT}/traefik/logs:/var/log/traefik # Volume to store Traefik logs
 
 networks:
   default:

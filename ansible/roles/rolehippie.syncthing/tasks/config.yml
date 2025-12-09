@@ -1,0 +1,52 @@
+---
+- name: Generate user config
+  become: true
+  become_user: "{{ item.username }}"
+  changed_when: false
+  ansible.builtin.command:
+    cmd: "syncthing generate --no-default-folder{% if item.home | default(false) %} --home={{ item.home }}{% endif %}{% if item.password | default(false) %} --gui-user={{ item.username }} --gui-password={{ item.password }}{% endif %}"
+  tags:
+    - syncthing
+
+- name: Fetch user config
+  register: syncthing_config_slurped
+  ansible.builtin.slurp:
+    src: "{{ item.home | default('/home/' + item.username) }}/.config/syncthing/config.xml"
+  tags:
+    - syncthing
+
+- name: Fact config content
+  ansible.builtin.set_fact:
+    syncthing_config_original: "{{ syncthing_config_slurped.content | ansible.builtin.b64decode | ansible.utils.from_xml }}"
+  tags:
+    - syncthing
+
+- name: Fact config changed
+  ansible.builtin.set_fact:
+    syncthing_config_updated: "{{ syncthing_config_original | combine({'configuration': syncthing_config_original.configuration | combine(item.config | default({}), recursive=true)}) }}"
+  tags:
+    - syncthing
+
+- name: Write updated config
+  notify:
+    - Restart syncthing
+  ansible.builtin.copy:
+    content: "{{ syncthing_config_updated | ansible.utils.to_xml(indent='spaces', full_document=false) }}"
+    dest: "{{ item.home | default('/home/' + item.username) }}/.config/syncthing/config.xml"
+    owner: "{{ item.username }}"
+    group: "{{ item.group | default(item.username) }}"
+    mode: u=rw,g=,o=
+  tags:
+    - syncthing
+
+- name: Start syncthing service
+  ansible.builtin.systemd:
+    name: "syncthing@{{ item.username }}"
+    state: started
+    daemon_reload: true
+    masked: false
+    enabled: true
+  tags:
+    - syncthing
+
+...
